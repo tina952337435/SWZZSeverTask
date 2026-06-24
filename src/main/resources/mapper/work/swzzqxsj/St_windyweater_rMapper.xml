@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.St_windyweater_rData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_windyweater_rPojo">
+        select a.* from "st_windyweater_r" a
+        <where>
+            <if test="ID != null and ID != ''">
+                and STCD = #{ID}
+            </if>
+<!--            <if test="key != null and key != ''">-->
+<!--                and NAME like concat('%',concat(#{key},'%'))-->
+<!--                or sex like concat('%',concat(#{key},'%'))-->
+<!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or MEMO like concat('%',concat(#{key},'%'))-->
+<!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+<!--            </if>-->
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and YBTM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and YBTM <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and TYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM "st_windyweater_r"
+        <where>
+            <if test="ID != null and ID != ''">
+                and STCD = #{ID}
+            </if>
+            <!--            <if test="key != null and key != ''">-->
+            <!--                and NAME like concat('%',concat(#{key},'%'))-->
+            <!--                or sex like concat('%',concat(#{key},'%'))-->
+            <!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or MEMO like concat('%',concat(#{key},'%'))-->
+            <!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+            <!--            </if>-->
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and YBTM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and YBTM <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and TYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.St_windyweater_rPojo">
+        insert into "st_windyweater_r"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="STCD != null and STCD != ''">
+                STCD,
+            </if>
+            <if test="YBTM != null and YBTM != ''">
+                YBTM,
+            </if>
+            <if test="TM != null and TM != ''">
+                TM,
+            </if>
+            <if test="UPDATETM != null and UPDATETM != ''">
+                UPDATETM,
+            </if>
+            <if test="WIND != null">
+                WIND,
+            </if>
+            <if test="WINDDIR != null">
+                WINDDIR,
+            </if>
+            <if test="PRESSURE != null">
+                PRESSURE,
+            </if>
+            <if test="DRP != null">
+                DRP,
+            </if>
+            <if test="GUST != null">
+                GUST,
+            </if>
+            <if test="TEMP != null">
+                TEMP,
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                TYPE,
+            </if>
+            <if test="NOTE != null and NOTE != ''">
+                NOTE,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="STCD != null and STCD != ''">
+                #{STCD},
+            </if>
+            <if test="YBTM != null and YBTM != ''">
+                #{YBTM},
+            </if>
+            <if test="TM != null and TM != ''">
+                #{TM},
+            </if>
+            <if test="UPDATETM != null and UPDATETM != ''">
+                #{UPDATETM},
+            </if>
+            <if test="WIND != null">
+                #{WIND},
+            </if>
+            <if test="WINDDIR != null">
+                #{WINDDIR},
+            </if>
+            <if test="PRESSURE != null">
+                #{PRESSURE},
+            </if>
+            <if test="DRP != null">
+                #{DRP},
+            </if>
+            <if test="GUST != null">
+                #{GUST},
+            </if>
+            <if test="TEMP != null">
+                #{TEMP},
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                #{TYPE},
+            </if>
+            <if test="NOTE != null and NOTE != ''">
+                #{NOTE},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.St_windyweater_rPojo">
+        update "st_windyweater_r"
+        <set>
+<!--            <if test="YBTM != null and YBTM != ''">-->
+<!--                YBTM = to_date(#{YBTM},'YYYY-MM-DD HH24:MI:SS'),-->
+<!--            </if>-->
+<!--            <if test="TM != null and TM != ''">-->
+<!--                TM = to_date(#{TM},'YYYY-MM-DD HH24:MI:SS'),-->
+<!--            </if>-->
+            <if test="UPDATETM != null and UPDATETM != ''">
+                UPDATETM = #{UPDATETM},
+            </if>
+            <if test="WIND != null">
+                WIND = #{WIND},
+            </if>
+            <if test="WINDDIR != null">
+                WINDDIR = #{WINDDIR},
+            </if>
+            <if test="PRESSURE != null">
+                PRESSURE = #{PRESSURE},
+            </if>
+            <if test="DRP != null">
+                DRP = #{DRP},
+            </if>
+            <if test="GUST != null">
+                GUST = #{GUST},
+            </if>
+            <if test="TEMP != null">
+                TEMP = #{TEMP},
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                TYPE = #{TYPE},
+            </if>
+            <if test="NOTE != null and NOTE != ''">
+                NOTE = #{NOTE},
+            </if>
+        </set>
+        where STCD = #{STCD}
+        and YBTM = #{YBTM}
+        and TM = #{TM}
+    </update>
+    <delete id="deleteOne">
+        delete from "st_windyweater_r" where STCD = #{ID}
+        and YBTM = #{YBTM}
+        and TM = #{TM}
+    </delete>
+
+    <insert id="insertALL" parameterType="list">
+        insert into "st_windyweater_r"(
+            STCD,
+            YBTM,
+            TM,
+            UPDATETM,
+            WIND,
+            WINDDIR,
+            PRESSURE,
+            DRP,
+            GUST,
+            TEMP,
+            TYPE,
+            NOTE)
+            values
+        <foreach collection="bpPojo" item="item" separator=",">
+            (#{item.STCD,jdbcType=VARCHAR},
+            #{item.YBTM,jdbcType=VARCHAR},
+            #{item.TM,jdbcType=VARCHAR},
+            #{item.UPDATETM,jdbcType=VARCHAR},
+            #{item.WIND,jdbcType=DOUBLE},
+            #{item.WINDDIR,jdbcType=DOUBLE},
+            #{item.PRESSURE,jdbcType=DOUBLE},
+            #{item.DRP,jdbcType=DOUBLE},
+            #{item.GUST,jdbcType=DOUBLE},
+            #{item.TEMP,jdbcType=DOUBLE},
+            #{item.TYPE,jdbcType=VARCHAR},
+            #{item.NOTE,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <delete id="deleteALL" parameterType="list">
+        delete from "st_windyweater_r" where
+        <foreach collection="bpPojo" item="item" separator="or">
+            (STCD = #{item.stcd,jdbcType=VARCHAR}
+            and YBTM = #{item.kID1,jdbcType=VARCHAR}
+            and TM = #{item.kID2,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </delete>
+
+    <update id="updateALL" parameterType="list">
+        <foreach collection="bpPojo" open="begin" close=";end;" item="obj" separator=";">
+            update "st_windyweater_r"
+            <set>
+                <if test="obj.UPDATETM != null and obj.UPDATETM != ''">
+                    UPDATETM = #{obj.UPDATETM,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.WIND != null">
+                    WIND = #{obj.WIND,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.WINDDIR != null">
+                    WINDDIR = #{obj.WINDDIR,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.PRESSURE != null">
+                    PRESSURE = #{obj.PRESSURE,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.DRP != null">
+                    DRP = #{obj.DRP,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.GUST != null">
+                    GUST = #{obj.GUST,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.TEMP != null">
+                    TEMP = #{obj.TEMP,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.TYPE != null and obj.TYPE != ''">
+                    TYPE = #{obj.TYPE,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.NOTE != null and obj.NOTE != ''">
+                    NOTE = #{obj.NOTE,jdbcType=VARCHAR},
+                </if>
+            </set>
+            where STCD = #{obj.STCD,jdbcType=VARCHAR}
+            and YBTM = #{obj.YBTM,jdbcType=VARCHAR}
+            and TM = #{obj.TM,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+    <delete id="deleteALLBySTCDAndYBTM">
+        delete from "st_windyweater_r" where STCD = #{stcd} and YBTM = #{ybtm}
+    </delete>
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.zjtyphoon.ZJ_TFLSLJData">
+    <insert id="insertALL" parameterType="list">
+        insert into ZJ_TFLSLJ
+        (
+        ZJ_ID,
+        ZJ_TFBH,
+        ZJ_RQSJ,
+        ZJ_WD,
+        ZJ_JD,
+        ZJ_ZXQY,
+        ZJ_ZXFS,
+        ZJ_YDSD,
+        ZJ_YDFX,
+        ZJ_SevenRadius,
+        ZJ_TenRadius,
+        ZJ_Note,
+        ZJ_Radius7,
+        ZJ_Radius10,
+        ZJ_Radius12
+        ) values
+        <foreach collection="zjList" item="obj" separator=",">
+            (
+            #{obj.ZJ_ID},
+            #{obj.ZJ_TFBH},
+            #{obj.ZJ_RQSJ},
+            #{obj.ZJ_WD},
+            #{obj.ZJ_JD},
+            #{obj.ZJ_ZXQY},
+            #{obj.ZJ_ZXFS},
+            #{obj.ZJ_YDSD},
+            #{obj.ZJ_YDFX},
+            #{obj.ZJ_SevenRadius},
+            #{obj.ZJ_TenRadius},
+            #{obj.ZJ_Note},
+            #{obj.ZJ_Radius7},
+            #{obj.ZJ_Radius10},
+            #{obj.ZJ_Radius12}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteALL">
+        delete from ZJ_TFLSLJ where ZJ_ID in
+        <foreach collection="idList" open="(" close=")" item="id" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectMaxId" resultType="integer">
+        select MAX(ZJ_ID) from ZJ_TFLSLJ
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        select count(1) from ZJ_TFLSLJ where ZJ_TFBH = #{tfId} and ZJ_RQSJ = #{time}
+    </select>
+
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_TFLSLJPojo">
+        select ZJ_WD,ZJ_JD from ZJ_TFLSLJ
+        <where>
+            <if test="tfbh != null and tfbh != ''">
+                and ZJ_TFBH = #{tfbh}
+            </if>
+        </where>
+        order by ZJ_RQSJ
+    </select>
+</mapper>

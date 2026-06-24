@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzwater.ST_STBPRP_BData">
+    <select id="GetSyncSTCD" resultType="timertaskserver.workserver.pojo.swzzwater.ST_STBPRP_BDto">
+        SELECT  a.STCD,a.STNM,a.HNNM,a.BSNM,
+        b.ZTM TM,b.ZSTCD ADMAUTH,b.SOURCE,b.UPZ,b.DWZ,b.TYPE,
+        a.GTOPNUM,a.OMCNUM,a.SFQ,b.ZD,
+        case  when a.LGTD is null then 0 else cast( a.LGTD as float) end as LGTD,
+        case  when a.LTTD is null then 0 else cast( a.LTTD as float) end as LTTD  FROM
+        (
+        SELECT ST_STBPRP_B.*,st_rvfcch_b.GRQ GTOPNUM,st_rvfcch_b.FLPQ OMCNUM,st_rvfcch_b.SFQ
+        FROM ST_STBPRP_B  LEFT JOIN st_rvfcch_b on ST_STBPRP_B.STCD = st_rvfcch_b.STCD
+        ) a
+        INNER JOIN st_stbprp_b_stcd b on a.STCD = b.STCD
+        <where>
+            ISSTATUS='1' AND b.TYPE='1'
+            <if test="stcdList != null and stcdList.size() > 0">
+                and a.STCD in
+                <foreach collection="stcdList" open="(" close=")" item="stcd" separator=",">
+                    #{stcd}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY TM DESC
+    </select>
+
+    <select id="GetSyncSTCDByType" resultType="timertaskserver.workserver.pojo.swzzwater.ST_STBPRP_BDto">
+        SELECT  a.STCD,a.STNM,a.HNNM,a.BSNM,
+        b.ZTM TM,b.ZSTCD ADMAUTH,b.SOURCE,b.UPZ,b.DWZ,b.TYPE,
+        a.GTOPNUM,a.OMCNUM,a.SFQ,b.ZD,
+        case  when a.LGTD is null then 0 else cast( a.LGTD as float) end as LGTD,
+        case  when a.LTTD is null then 0 else cast( a.LTTD as float) end as LTTD  FROM
+        (
+        SELECT ST_STBPRP_B.*,st_rvfcch_b.GRQ GTOPNUM,st_rvfcch_b.FLPQ OMCNUM,st_rvfcch_b.SFQ
+        FROM ST_STBPRP_B  LEFT JOIN st_rvfcch_b on ST_STBPRP_B.STCD = st_rvfcch_b.STCD
+        ) a
+        INNER JOIN st_stbprp_b_stcd b on a.STCD = b.STCD
+        <where>
+            ISSTATUS='1'
+            <if test="TYPE != null and TYPE != ''">
+                AND b.TYPE=#{TYPE}
+            </if>
+            <if test="stcdList != null and stcdList.size() > 0">
+                and a.STCD in
+                <foreach collection="stcdList" open="(" close=")" item="stcd" separator=",">
+                    #{stcd}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY TM DESC
+    </select>
+</mapper>

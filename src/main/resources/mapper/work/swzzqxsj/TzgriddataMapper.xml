@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.TzgriddataData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.TzgriddataPojo">
+        select a.* from "tzgriddata" a
+        <where>
+            <if test="ID != null and ID != ''">
+                and GRIDCODE = #{ID}
+            </if>
+<!--            <if test="key != null and key != ''">-->
+<!--                and NAME like concat('%',concat(#{key},'%'))-->
+<!--            </if>-->
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and FTM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and FTM <= #{etime} ]]>
+            </if>
+
+<!--            <if test="type != null and type.size() > 0">-->
+<!--                and GROUPID in-->
+<!--                <foreach collection="type" open="(" close=")" item="item" separator=",">-->
+<!--                    #{item}-->
+<!--                </foreach>-->
+<!--            </if>-->
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM "tzgriddata"
+        <where>
+            <if test="ID != null and ID != ''">
+                and GRIDCODE = #{ID}
+            </if>
+            <!--            <if test="key != null and key != ''">-->
+            <!--                and NAME like concat('%',concat(#{key},'%'))-->
+            <!--            </if>-->
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and FTM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and FTM <= #{etime} ]]>
+            </if>
+            <!--            <if test="type != null and type.size() > 0">-->
+            <!--                and GROUPID in-->
+            <!--                <foreach collection="type" open="(" close=")" item="item" separator=",">-->
+            <!--                    #{item}-->
+            <!--                </foreach>-->
+            <!--            </if>-->
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.TzgriddataPojo">
+        insert into "tzgriddata"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="GRIDCODE != null">
+                GRIDCODE,
+            </if>
+            <if test="FTM != null and FTM != ''">
+                FTM,
+            </if>
+            <if test="RLSTM != null and RLSTM != ''">
+                RLSTM,
+            </if>
+            <if test="FPDR != null">
+                FPDR,
+            </if>
+            <if test="FP != null">
+                FP,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="GRIDCODE != null">
+                #{GRIDCODE},
+            </if>
+            <if test="FTM != null and FTM != ''">
+                #{FTM},
+            </if>
+            <if test="RLSTM != null and RLSTM != ''">
+                #{RLSTM},
+            </if>
+            <if test="FPDR != null">
+                #{FPDR},
+            </if>
+            <if test="FP != null">
+                #{FP},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.TzgriddataPojo">
+        update "tzgriddata"
+        <set>
+            <if test="FPDR != null">
+                FPDR = #{FPDR},
+            </if>
+            <if test="FP != null">
+                FP = #{FP},
+            </if>
+        </set>
+        where GRIDCODE = #{GRIDCODE} and FTM = #{FTM} and RLSTM = #{RLSTM}
+    </update>
+    <delete id="deleteOne">
+        delete from "tzgriddata" where GRIDCODE = #{GRIDCODE,jdbcType=VARCHAR}
+        and FTM = #{FTM,jdbcType=VARCHAR}
+        and RLSTM = #{RLSTM,jdbcType=VARCHAR}
+    </delete>
+</mapper>

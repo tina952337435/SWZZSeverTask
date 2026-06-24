@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzmode.DD_AUTOMATICData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzmode.DD_AUTOMATICPojo">
+        select a.* from DD_AUTOMATIC a
+        <where>
+            <if test="ID != null and ID != ''">
+                and VALUE = #{ID}
+            </if>
+            <if test="ISJS != null and ISJS != ''">
+                and ISJS = #{ISJS}
+            </if>
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+</mapper>

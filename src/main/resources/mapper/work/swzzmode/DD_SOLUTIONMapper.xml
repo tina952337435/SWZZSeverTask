@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzmode.DD_SOLUTIONData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzmode.DD_SOLUTIONPojo">
+        select a.* from DD_SOLUTION a
+        <where>
+            <if test="ID != null and ID != ''">
+                and ID = #{ID}
+            </if>
+            <if test="key != null and key != ''">
+                and (
+                DD_NAME like concat('%',concat(#{key},'%'))
+                or DD_BY like concat('%',concat(#{key},'%'))
+                )
+            </if>
+            <if test="mindList != null and mindList.size() > 0">
+                and DD_MIND in
+                <foreach collection="mindList" open="(" close=")" item="mind" separator=",">
+                    #{mind}
+                </foreach>
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and DD_TM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and DD_TM <= #{etime} ]]>
+            </if>
+            <if test="DD_EVALUE != null and DD_EVALUE != ''">
+                and DD_EVALUE = #{DD_EVALUE}
+            </if>
+        </where>
+        order by DD_CARRYTM desc
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+</mapper>

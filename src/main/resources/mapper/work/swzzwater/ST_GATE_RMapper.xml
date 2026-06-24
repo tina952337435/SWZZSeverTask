@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzwater.ST_GATE_RData">
+
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzwater.ST_GATE_RPojo">
+        select * from ST_GATE_R
+        <where>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TM <= #{etime} ]]>
+            </if>
+            <if test="stcdList != null and stcdList.size() > 0">
+                and STCD in
+                <foreach collection="stcdList" open="(" close=")" item="stcd" separator=",">
+                    #{stcd}
+                </foreach>
+            </if>
+        </where>
+        order by TM desc
+    </select>
+
+    <select id="selectTMBYNew" resultType="timertaskserver.workserver.pojo.swzzwater.ST_GATE_RPojo">
+        select Max(TM) TM from ST_GATE_R where STCD = #{stcd}
+    </select>
+
+    <insert id="insertALL" parameterType="timertaskserver.workserver.pojo.swzzwater.ST_GATE_RPojo">
+        insert into ST_GATE_R(
+        STCD,
+        TM,
+        EXKEY,
+        EQPTP,
+        EQPNO,
+        GTOPNUM,
+        GTOPHGT,
+        GTQ,
+        MSQMT
+        ) values
+        <foreach collection="objList" item="obj" separator=",">
+            (
+            #{obj.STCD},
+            #{obj.TM},
+            #{obj.EXKEY},
+            #{obj.EQPTP},
+            #{obj.EQPNO},
+            #{obj.GTOPNUM},
+            #{obj.GTOPHGT},
+            #{obj.GTQ},
+            #{obj.MSQMT}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectNewList" resultType="timertaskserver.workserver.pojo.swzzwater.ST_GATE_RPojo">
+        select a.* from ST_GATE_R a inner join (
+        select MAX(TM) TM,STCD,EXKEY,EQPNO,EQPTP from ST_GATE_R group by STCD,EXKEY,EQPNO,EQPTP
+        ) b on a.STCD = b.STCD and a.EXKEY = b.EXKEY and a.EQPNO = b.EQPNO and a.EQPTP = b.EQPTP and a.TM = b.TM
+    </select>
+</mapper>

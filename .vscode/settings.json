@@ -1,0 +1,5 @@
+{
+    "java.configuration.maven.userSettings": "D:\\apache-maven-3.8.1\\conf\\settings.xml",
+    "maven.home": "D:\\apache-maven-3.8.1",
+    "java.compile.nullAnalysis.mode": "automatic"
+}

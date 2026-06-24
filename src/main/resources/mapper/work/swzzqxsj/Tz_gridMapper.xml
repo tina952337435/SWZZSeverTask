@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.Tz_gridData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.Tz_gridPojo">
+        select a.* from "tz_grid" a
+        <where>
+            <if test="ID != null and ID != ''">
+                and ID = #{ID}
+            </if>
+
+<!--            <if test="key != null and key != ''">-->
+<!--                and NAME like concat('%',concat(#{key},'%'))-->
+<!--                or sex like concat('%',concat(#{key},'%'))-->
+<!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or MEMO like concat('%',concat(#{key},'%'))-->
+<!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+<!--            </if>-->
+<!--            <if test="stime != null and stime != ''">-->
+<!--                <![CDATA[ and BIRTHDAY >= #{stime} ]]>-->
+<!--            </if>-->
+<!--            <if test="etime != null and etime != ''">-->
+<!--                <![CDATA[ and BIRTHDAY <= #{etime} ]]>-->
+<!--            </if>-->
+<!--            <if test="type != null and type.size() > 0">-->
+<!--                and GROUPID in-->
+<!--                <foreach collection="type" open="(" close=")" item="item" separator=",">-->
+<!--                    #{item}-->
+<!--                </foreach>-->
+<!--            </if>-->
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM "tz_grid"
+        <where>
+            <if test="ID != null and ID != ''">
+                and ID = #{ID}
+            </if>
+            <!--            <if test="key != null and key != ''">-->
+            <!--                and NAME like concat('%',concat(#{key},'%'))-->
+            <!--                or sex like concat('%',concat(#{key},'%'))-->
+            <!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or MEMO like concat('%',concat(#{key},'%'))-->
+            <!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+            <!--            </if>-->
+            <!--            <if test="stime != null and stime != ''">-->
+            <!--                <![CDATA[ and BIRTHDAY >= #{stime} ]]>-->
+            <!--            </if>-->
+            <!--            <if test="etime != null and etime != ''">-->
+            <!--                <![CDATA[ and BIRTHDAY <= #{etime} ]]>-->
+            <!--            </if>-->
+            <!--            <if test="type != null and type.size() > 0">-->
+            <!--                and GROUPID in-->
+            <!--                <foreach collection="type" open="(" close=")" item="item" separator=",">-->
+            <!--                    #{item}-->
+            <!--                </foreach>-->
+            <!--            </if>-->
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tz_gridPojo">
+        insert into "tz_grid"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ID != null and ID != ''">
+                ID,
+            </if>
+            <if test="GRIDCODE != null">
+                GRIDCODE,
+            </if>
+            <if test="LGTD != null">
+                LGTD,
+            </if>
+            <if test="LTTD != null">
+                LTTD,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ID != null and ID != ''">
+                #{ID},
+            </if>
+            <if test="GRIDCODE != null">
+                #{GRIDCODE},
+            </if>
+            <if test="LGTD != null">
+                #{LGTD},
+            </if>
+            <if test="LTTD != null">
+                #{LTTD},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tz_gridPojo">
+        update "tz_grid"
+        <set>
+            <if test="GRIDCODE != null">
+                GRIDCODE = #{GRIDCODE},
+            </if>
+            <if test="LGTD != null">
+                LGTD = #{LGTD},
+            </if>
+            <if test="LTTD != null">
+                LTTD = #{LTTD},
+            </if>
+        </set>
+        where ID = #{ID}
+    </update>
+    <delete id="deleteOne">
+        delete from "tz_grid" where ID = #{ID}
+    </delete>
+</mapper>

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f \"D:/apache-maven-3.8.1/repository/com/dm/dm-connector-java/1.8.0/\"*.lastUpdated)",
+      "Bash(mvn install:install-file -Dfile=\"D:/apache-maven-3.8.1/repository/com/dm/dm-connector-java/1.8.0/dm-connector-java-1.8.0.jar\" -DgroupId=com.dm -DartifactId=dm-connector-java -Dversion=1.8.0 -Dpackaging=jar)"
+    ]
+  }
+}

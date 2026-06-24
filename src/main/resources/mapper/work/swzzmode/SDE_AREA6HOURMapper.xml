@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzmode.SDE_AREA6HOURData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzmode.SDE_AREA6HOURPojo">
+        select a.* from SDE_AREA6HOUR a
+        <where>
+            <if test="ID != null">
+                and FID = #{ID}
+            </if>
+
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT count(1) FROM SDE_AREA6HOUR
+        <where>
+            <if test="ID != null">
+                and FID = #{ID}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzmode.SDE_AREA6HOURPojo">
+--         SET IDENTITY_INSERT SDE_AREA6HOUR ON
+        insert into SDE_AREA6HOUR
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="FID != null">
+                FID,
+            </if>
+            <if test="AREANAME != null and AREANAME != ''">
+                AREANAME,
+            </if>
+            <if test="AREAMEASURE != null">
+                AREAMEASURE,
+            </if>
+            <if test="COLOR != null">
+                COLOR,
+            </if>
+            <if test="ZVALUE != null">
+                ZVALUE,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="FID != null">
+                #{FID},
+            </if>
+            <if test="AREANAME != null and AREANAME != ''">
+                #{AREANAME},
+            </if>
+            <if test="AREAMEASURE != null">
+                #{AREAMEASURE},
+            </if>
+            <if test="COLOR != null">
+                #{COLOR},
+            </if>
+            <if test="ZVALUE != null">
+                #{ZVALUE},
+            </if>
+        </trim>
+--        SET IDENTITY_INSERT SDE_AREA6HOUR OFF
+    </insert>
+    <insert id="insertALL" parameterType="timertaskserver.workserver.pojo.swzzmode.SDE_AREA6HOURPojo">
+        insert into SDE_AREA6HOUR(FID,AREANAME,AREAMEASURE,COLOR,ZVALUE) values
+        <foreach collection="objList" item="obj" separator=",">
+            (#{obj.FID},#{obj.AREANAME},#{obj.AREAMEASURE},#{obj.COLOR},#{obj.ZVALUE})
+        </foreach>
+    </insert>
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzmode.SDE_AREA6HOURPojo">
+        update SDE_AREA6HOUR
+        <set>
+            <if test="AREANAME != null and AREANAME != ''">
+                AREANAME = #{AREANAME},
+            </if>
+            <if test="AREAMEASURE != null">
+                AREAMEASURE = #{AREAMEASURE},
+            </if>
+            <if test="COLOR != null">
+                COLOR = #{COLOR},
+            </if>
+            <if test="ZVALUE != null">
+                ZVALUE = #{ZVALUE},
+            </if>
+        </set>
+        where FID = #{FID}
+    </update>
+    <delete id="deleteOne">
+        delete from SDE_AREA6HOUR where FID = #{ID}
+    </delete>
+</mapper>

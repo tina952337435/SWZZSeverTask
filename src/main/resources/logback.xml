@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 定义日志文件的存储位置以及文件名 -->
+    <!--    /home/vdb/gaoqi/ModeUploadDoc-->
+
+
+    <!-- 苏州河项目 -->
+    <!-- /data/work/Project/UploadDoc/ -->
+
+    <property name="LOG_FILE" value="/data/work/Project/UploadDoc/logs/myLog.log"/>
+
+    <!-- 日志文件的最大大小 -->
+    <property name="MAX_FILE_SIZE" value="10MB"/>
+    <!-- 日志文件的最大历史记录（如30天） -->
+    <property name="MAX_HISTORY" value="30"/>
+
+    <!-- 日志文件输出的appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 这里设置日志文件的名称 -->
+        <file>${LOG_FILE}</file>
+        <!-- 滚动策略 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 日志文件名格式 -->
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 日志文件的最大历史记录 -->
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+        <!-- 日志输出格式 -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 控制台输出的appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 为ROOT LOGGER设置appender -->
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

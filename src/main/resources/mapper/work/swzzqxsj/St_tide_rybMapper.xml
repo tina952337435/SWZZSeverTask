@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.St_tide_rybData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_tide_rybPojo">
+        select a.* from "st_tide_ryb" a
+        <where>
+            <if test="ID != null and ID != ''">
+                and a.STCD = #{ID}
+            </if>
+<!--            <if test="key != null and key != ''">-->
+<!--                and NAME like concat('%',concat(#{key},'%'))-->
+<!--                or sex like concat('%',concat(#{key},'%'))-->
+<!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or MEMO like concat('%',concat(#{key},'%'))-->
+<!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+<!--            </if>-->
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TM <= #{etime} ]]>
+            </if>
+            <if test="ybstime != null and ybstime != ''">
+                <![CDATA[ and YBTM >= #{ybstime} ]]>
+            </if>
+            <if test="ybetime != null and ybetime != ''">
+                <![CDATA[ and YBTM <= #{ybetime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and RTYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+
+        </where>
+        order by YBTM desc
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM "st_tide_ryb"
+        <where>
+            <if test="ID != null and ID != ''">
+                and STCD = #{ID}
+            </if>
+            <!--            <if test="key != null and key != ''">-->
+            <!--                and NAME like concat('%',concat(#{key},'%'))-->
+            <!--                or sex like concat('%',concat(#{key},'%'))-->
+            <!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or MEMO like concat('%',concat(#{key},'%'))-->
+            <!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+            <!--            </if>-->
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TM <= #{etime} ]]>
+            </if>
+            <if test="ybstime != null and ybstime != ''">
+                <![CDATA[ and YBTM >= #{ybstime} ]]>
+            </if>
+            <if test="ybetime != null and ybetime != ''">
+                <![CDATA[ and YBTM <= #{ybetime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and RTYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.St_tide_rybPojo">
+        insert into "st_tide_ryb"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="STCD != null and STCD != ''">
+                STCD,
+            </if>
+            <if test="TM != null and TM != ''">
+                TM,
+            </if>
+            <if test="YBTM != null and YBTM != ''">
+                YBTM,
+            </if>
+            <if test="TDZ != null">
+                TDZ,
+            </if>
+            <if test="RTYPE != null and RTYPE !=''">
+                RTYPE,
+            </if>
+            <if test="NOTE != null and NOTE != ''">
+                NOTE,
+            </if>
+            <if test="REMARK != null and REMARK !=''">
+                REMARK,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="STCD != null and STCD != ''">
+                #{STCD},
+            </if>
+            <if test="TM != null and TM != ''">
+                #{TM},
+            </if>
+            <if test="YBTM != null and YBTM != ''">
+                #{YBTM},
+            </if>
+            <if test="TDZ != null">
+                #{TDZ},
+            </if>
+            <if test="RTYPE != null and RTYPE !=''">
+                #{RTYPE},
+            </if>
+            <if test="NOTE != null and NOTE != ''">
+                #{NOTE},
+            </if>
+            <if test="REMARK != null and REMARK !=''">
+                #{REMARK},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.St_tide_rybPojo">
+        update "st_tide_ryb"
+        <set>
+<!--            <if test="TM != null and TM != ''">-->
+<!--                TM = #{TM},-->
+<!--            </if>-->
+<!--            <if test="YBTM != null and YBTM != ''">-->
+<!--                YBTM = #{YBTM},-->
+<!--            </if>-->
+            <if test="TDZ != null">
+                TDZ = #{TDZ},
+            </if>
+            <if test="RTYPE != null and RTYPE !=''">
+                RTYPE = #{RTYPE},
+            </if>
+            <if test="NOTE != null and NOTE != ''">
+                NOTE = #{NOTE},
+            </if>
+            <if test="REMARK != null and REMARK !=''">
+                REMARK = #{REMARK},
+            </if>
+        </set>
+        where STCD = #{STCD}
+        and YBTM = #{YBTM}
+        and TM = #{TM}
+    </update>
+    <delete id="deleteOne">
+        delete from "st_tide_ryb" where STCD = #{ID}
+        and YBTM = #{YBTM}
+        and TM = #{TM}
+    </delete>
+
+    <insert id="insertALL" parameterType="list">
+        insert into "st_tide_ryb"(
+            STCD,
+            TM,
+            YBTM,
+            TDZ,
+            RTYPE,
+            NOTE,
+            REMARK)
+            values
+        <foreach collection="bpPojo" item="item" separator=",">
+            (#{item.STCD,jdbcType=VARCHAR},
+            #{item.TM,jdbcType=VARCHAR},
+            #{item.YBTM,jdbcType=VARCHAR},
+            #{item.TDZ,jdbcType=DOUBLE},
+            #{item.RTYPE,jdbcType=VARCHAR},
+            #{item.NOTE,jdbcType=VARCHAR},
+            #{item.REMARK,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <delete id="deleteALL" parameterType="list">
+        delete from "st_tide_ryb" where
+        <foreach collection="bpPojo" item="item" separator="or">
+            (
+            STCD = #{item.stcd,jdbcType=VARCHAR}
+            and YBTM = #{item.kID1,jdbcType=VARCHAR}
+            and TM = #{item.kID2,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </delete>
+
+    <select id="selectListByNew" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_tide_rybPojo">
+        select a.* from "st_tide_ryb" a inner join(
+        SELECT MAX(YBTM) as MYBTM, TM, STCD FROM "st_tide_ryb"
+        where
+        <![CDATA[ YBTM <= #{etime,jdbcType=VARCHAR} ]]>
+        <![CDATA[and YBTM >= #{stime,jdbcType=VARCHAR} ]]>
+        and STCD = #{ID}
+        GROUP BY STCD, TM
+        ) b on a.STCD = b.STCD and a.YBTM = MYBTM AND A.TM = B.TM
+    </select>
+
+    <update id="updateALL" parameterType="list">
+        <foreach collection="bpPojo" item="obj" separator=";">
+            update "st_tide_ryb"
+            <set>
+                <if test="obj.TM != null and obj.TM != ''">
+                    TM = #{obj.TM,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.YBTM != null and obj.YBTM != ''">
+                    YBTM = #{obj.YBTM,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.TDZ != null">
+                    TDZ = #{obj.TDZ,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.RTYPE != null and obj.RTYPE !=''">
+                    RTYPE = #{obj.RTYPE,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.NOTE != null and obj.NOTE != ''">
+                    NOTE = #{obj.NOTE,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.REMARK != null and obj.REMARK !=''">
+                    REMARK = #{obj.REMARK,jdbcType=VARCHAR},
+                </if>
+            </set>
+            where STCD = #{obj.STCD,jdbcType=VARCHAR}
+            and YBTM = #{obj.YBTM,jdbcType=VARCHAR}
+            and TM = #{obj.TM,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+    <select id="selectByNewTm" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_tide_rybPojo">
+        select STCD,MAX(TM) TM from "st_tide_ryb" where STCD = #{ID} group by STCD
+    </select>
+</mapper>

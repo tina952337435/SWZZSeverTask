@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.St_rnfl_fData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_rnfl_fPojo">
+        select a.* from "st_rnfl_f" a
+        <where>
+            <if test="ID != null and ID != ''">
+                and STCD = #{ID}
+            </if>
+<!--            <if test="key != null and key != ''">-->
+<!--                and NAME like concat('%',concat(#{key},'%'))-->
+<!--                or sex like concat('%',concat(#{key},'%'))-->
+<!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or MEMO like concat('%',concat(#{key},'%'))-->
+<!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+<!--            </if>-->
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TM <= #{etime} ]]>
+            </if>
+            <if test="ybtm != null and ybtm != ''">
+                <![CDATA[ and YBTM = #{ybtm} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and TYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM "st_rnfl_f"
+        <where>
+            <if test="ID != null and ID != ''">
+                and STCD = #{ID}
+            </if>
+            <!--            <if test="key != null and key != ''">-->
+            <!--                and NAME like concat('%',concat(#{key},'%'))-->
+            <!--                or sex like concat('%',concat(#{key},'%'))-->
+            <!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or MEMO like concat('%',concat(#{key},'%'))-->
+            <!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+            <!--            </if>-->
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TM <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and TYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.St_rnfl_fPojo">
+        insert into "st_rnfl_f"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="STCD != null and STCD != ''">
+                STCD,
+            </if>
+            <if test="YBTM != null and YBTM != ''">
+                YBTM,
+            </if>
+            <if test="TM != null and TM != ''">
+                TM,
+            </if>
+            <if test="DRP != null">
+                DRP,
+            </if>
+            <if test="INTV != null">
+                INTV,
+            </if>
+            <if test="TEMP != null">
+                TEMP,
+            </if>
+            <if test="HUMIDITY != null">
+                HUMIDITY,
+            </if>
+            <if test="WINDDIR != null and WINDDIR != ''">
+                WINDDIR,
+            </if>
+            <if test="WINDSPEED != null">
+                WINDSPEED,
+            </if>
+            <if test="WEATHERCODE != null and WEATHERCODE != ''">
+                WEATHERCODE,
+            </if>
+            <if test="AIRPRESSURE != null">
+                AIRPRESSURE,
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                TYPE,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="STCD != null and STCD != ''">
+                #{STCD},
+            </if>
+            <if test="YBTM != null and YBTM != ''">
+                #{YBTM},
+            </if>
+            <if test="TM != null and TM != ''">
+                #{TM},
+            </if>
+            <if test="DRP != null">
+                #{DRP},
+            </if>
+            <if test="INTV != null">
+                #{INTV},
+            </if>
+            <if test="TEMP != null">
+                #{TEMP},
+            </if>
+            <if test="HUMIDITY != null">
+                #{HUMIDITY},
+            </if>
+            <if test="WINDDIR != null and WINDDIR != ''">
+                #{WINDDIR},
+            </if>
+            <if test="WINDSPEED != null">
+                #{WINDSPEED},
+            </if>
+            <if test="WEATHERCODE != null and WEATHERCODE != ''">
+                #{WEATHERCODE},
+            </if>
+            <if test="AIRPRESSURE != null">
+                #{AIRPRESSURE},
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                #{TYPE},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.St_rnfl_fPojo">
+        update "st_rnfl_f"
+        <set>
+<!--            <if test="YBTM != null and YBTM != ''">-->
+<!--                YBTM = to_date(#{YBTM},'YYYY-MM-DD HH24:MI:SS'),-->
+<!--            </if>-->
+<!--            <if test="TM != null and TM != ''">-->
+<!--                TM = to_date(#{TM},'YYYY-MM-DD HH24:MI:SS'),-->
+<!--            </if>-->
+            <if test="DRP != null">
+                DRP = #{DRP},
+            </if>
+            <if test="INTV != null">
+                INTV = #{INTV},
+            </if>
+            <if test="TEMP != null">
+                TEMP = #{TEMP},
+            </if>
+            <if test="HUMIDITY != null">
+                HUMIDITY = #{HUMIDITY},
+            </if>
+            <if test="WINDDIR != null and WINDDIR != ''">
+                WINDDIR = #{WINDDIR},
+            </if>
+            <if test="WINDSPEED != null">
+                WINDSPEED = #{WINDSPEED},
+            </if>
+            <if test="WEATHERCODE != null and WEATHERCODE != ''">
+                WEATHERCODE = #{WEATHERCODE},
+            </if>
+            <if test="AIRPRESSURE != null">
+                AIRPRESSURE = #{AIRPRESSURE},
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                TYPE = #{TYPE},
+            </if>
+        </set>
+        where STCD = #{STCD}
+        and YBTM = #{YBTM}
+        and TM = #{TM}
+    </update>
+    <delete id="deleteOne">
+        delete from "st_rnfl_f" where STCD = #{ID}
+        and YBTM = #{YBTM}
+        and TM = #{TM}
+    </delete>
+
+    <insert id="insertALL" parameterType="list">
+        insert into "st_rnfl_f"(
+            STCD,
+            YBTM,
+            TM,
+            DRP,
+            INTV,
+            TEMP,
+            HUMIDITY,
+            WINDDIR,
+            WINDSPEED,
+            WEATHERCODE,
+            AIRPRESSURE,
+            TYPE)
+            values
+        <foreach collection="bpPojo" item="item" separator=",">
+            (
+            #{item.STCD,jdbcType=VARCHAR},
+            #{item.YBTM,jdbcType=VARCHAR},
+            #{item.TM,jdbcType=VARCHAR},
+            #{item.DRP,jdbcType=DOUBLE},
+            #{item.INTV,jdbcType=DOUBLE},
+            #{item.TEMP,jdbcType=DOUBLE},
+            #{item.HUMIDITY,jdbcType=DOUBLE},
+            #{item.WINDDIR,jdbcType=VARCHAR},
+            #{item.WINDSPEED,jdbcType=DOUBLE},
+            #{item.WEATHERCODE,jdbcType=VARCHAR},
+            #{item.AIRPRESSURE,jdbcType=DOUBLE},
+            #{item.TYPE,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteALL" parameterType="list">
+        delete from "st_rnfl_f" where
+        <foreach collection="bpPojo" item="item" separator="or">
+            (
+            STCD = #{item.stcd,jdbcType=VARCHAR}
+            and YBTM = #{item.kID1,jdbcType=VARCHAR}
+            and TM = #{item.kID2,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </delete>
+
+    <select id="selectByHourHX" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_rnfl_fPojo">
+        select * from "st_rnfl_f"
+        <where>
+            YBTM = (
+            select max(YBTM) as YBTM from "st_rnfl_f"
+            <where>
+                <if test="rlstime != null and rlstime != ''">
+                    <![CDATA[ and YBTM >= #{rlstime,jdbcType=VARCHAR} ]]>
+                </if>
+                <if test="rletime != null and rletime != ''">
+                    <![CDATA[ and YBTM <= #{rletime,jdbcType=VARCHAR} ]]>
+                </if>
+            </where>
+            )
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TM >= #{stime,jdbcType=VARCHAR} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TM <= #{etime,jdbcType=VARCHAR} ]]>
+            </if>
+        </where>
+    </select>
+
+    <update id="updateALL" parameterType="list">
+        <foreach collection="list" item="obj" separator=";">
+            update "st_rnfl_f"
+            <set>
+                <if test="obj.DRP != null">
+                    DRP = #{obj.DRP,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.INTV != null">
+                    INTV = #{obj.INTV,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.TEMP != null">
+                    TEMP = #{obj.TEMP,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.HUMIDITY != null">
+                    HUMIDITY = #{obj.HUMIDITY,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.WINDDIR != null and obj.WINDDIR != ''">
+                    WINDDIR = #{obj.WINDDIR,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.WINDSPEED != null">
+                    WINDSPEED = #{obj.WINDSPEED,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.WEATHERCODE != null and obj.WEATHERCODE != ''">
+                    WEATHERCODE = #{obj.WEATHERCODE,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.AIRPRESSURE != null">
+                    AIRPRESSURE = #{obj.AIRPRESSURE,jdbcType=DOUBLE},
+                </if>
+                <if test="obj.TYPE != null and obj.TYPE != ''">
+                    TYPE = #{obj.TYPE,jdbcType=VARCHAR},
+                </if>
+            </set>
+            where STCD = #{obj.STCD,jdbcType=VARCHAR}
+            and YBTM = #{obj.YBTM,jdbcType=VARCHAR}
+            and TM = #{obj.TM,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+    <select id="selectByYBTMNew" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_rnfl_fPojo">
+        select Max(YBTM) YBTM from "st_rnfl_f"
+    </select>
+
+    <select id="selectByYBTMNewByStcd" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_rnfl_fPojo">
+        select Max(YBTM) YBTM from "st_rnfl_f" where STCD = #{stcd}
+    </select>
+</mapper>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzwater.ST_STBPRP_B_STCDData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzwater.ST_STBPRP_B_STCDPojo">
+        select STCD,ZSTCD,STNM from ST_STBPRP_B_STCD
+        <where>
+            <if test="TYPE != null and TYPE != ''">
+                and TYPE = #{TYPE}
+            </if>
+        </where>
+    </select>
+</mapper>

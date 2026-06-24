@@ -1,0 +1,23 @@
+package timertaskserver.workserver.data.swzzwater;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Component;
+import timertaskserver.workserver.pojo.swzzwater.ST_GATE_RNEWPojo;
+import timertaskserver.workserver.pojo.swzzwater.ST_GATE_RPojo;
+
+import java.util.List;
+
+@Component
+@Mapper
+public interface ST_GATE_RData {
+    List<ST_GATE_RPojo> selectList(@Param("stime") String stime,
+                                   @Param("etime") String etime,
+                                   @Param("stcdList") List<String> stcdList);
+
+    ST_GATE_RPojo selectTMBYNew(@Param("stcd")String stcd);
+
+    Integer insertALL(@Param("objList")List<ST_GATE_RPojo> objList);
+
+    List<ST_GATE_RPojo> selectNewList();
+}

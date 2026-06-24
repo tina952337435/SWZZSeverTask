@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzwater.ST_GATE_RNEWData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzwater.ST_GATE_RNEWPojo">
+        select * from ST_GATE_RNEW
+        <where>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TM <= #{etime} ]]>
+            </if>
+        </where>
+        order by TM desc
+    </select>
+
+    <select id="selectTMBYNew" resultType="timertaskserver.workserver.pojo.swzzwater.ST_GATE_RNEWPojo">
+        select Max(TM) TM from ST_GATE_RNEW where STCD = #{stcd}
+    </select>
+
+    <insert id="insertALL" parameterType="timertaskserver.workserver.pojo.swzzwater.ST_GATE_RNEWPojo">
+        insert into ST_GATE_RNEW(
+        STCD,
+        TM,
+        EXKEY,
+        EQPTP,
+        EQPNO,
+        GTQ
+        ) values
+        <foreach collection="objList" item="obj" separator=",">
+            (
+            #{obj.STCD},
+            #{obj.TM},
+            #{obj.EXKEY},
+            #{obj.EQPTP},
+            #{obj.EQPNO},
+            #{obj.GTQ}
+            )
+        </foreach>
+    </insert>
+    <delete id="deleteAll">
+        delete from ST_GATE_RNEW
+    </delete>
+</mapper>

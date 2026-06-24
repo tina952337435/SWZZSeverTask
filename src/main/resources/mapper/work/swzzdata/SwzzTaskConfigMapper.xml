@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="timertaskserver.workserver.data.swzzdata.SwzzTaskConfigData">
+
+    <resultMap id="SwzzTaskConfigResult" type="timertaskserver.workserver.pojo.swzzdata.SwzzTaskConfigPojo">
+        <id property="id" column="ID"/>
+        <result property="taskName" column="TASK_NAME"/>
+        <result property="taskClass" column="TASK_CLASS"/>
+        <result property="enabled" column="ENABLED"/>
+        <result property="intervalMinutes" column="INTERVAL_MINUTES"/>
+        <result property="cronExpr" column="CRON_EXPR"/>
+        <result property="remark" column="REMARK"/>
+        <result property="createTime" column="CREATE_TIME"/>
+        <result property="updateTime" column="UPDATE_TIME"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="SwzzTaskConfigResult">
+        SELECT ID, TASK_NAME, TASK_CLASS, ENABLED, INTERVAL_MINUTES, CRON_EXPR, REMARK, CREATE_TIME, UPDATE_TIME
+        FROM SWZZ_TASK_CONFIG
+        ORDER BY CREATE_TIME
+    </select>
+
+    <select id="selectEnabled" resultMap="SwzzTaskConfigResult">
+        SELECT ID, TASK_NAME, TASK_CLASS, ENABLED, INTERVAL_MINUTES, CRON_EXPR, REMARK, CREATE_TIME, UPDATE_TIME
+        FROM SWZZ_TASK_CONFIG
+        WHERE ENABLED = 1
+        ORDER BY CREATE_TIME
+    </select>
+
+    <select id="selectById" resultMap="SwzzTaskConfigResult">
+        SELECT ID, TASK_NAME, TASK_CLASS, ENABLED, INTERVAL_MINUTES, CRON_EXPR, REMARK, CREATE_TIME, UPDATE_TIME
+        FROM SWZZ_TASK_CONFIG
+        WHERE ID = #{id}
+    </select>
+
+    <update id="updateEnabled">
+        UPDATE SWZZ_TASK_CONFIG
+        SET ENABLED = #{enabled},
+            UPDATE_TIME = TO_CHAR(NOW(), 'yyyy-MM-dd HH24:mi:ss')
+        WHERE ID = #{id}
+    </update>
+
+    <update id="updateInterval">
+        UPDATE SWZZ_TASK_CONFIG
+        SET INTERVAL_MINUTES = #{intervalMinutes},
+            UPDATE_TIME = TO_CHAR(NOW(), 'yyyy-MM-dd HH24:mi:ss')
+        WHERE ID = #{id}
+    </update>
+
+    <insert id="saveOrUpdate" parameterType="timertaskserver.workserver.pojo.swzzdata.SwzzTaskConfigPojo">
+        MERGE INTO SWZZ_TASK_CONFIG T
+        USING (
+            SELECT #{id} AS ID, #{taskName} AS TASK_NAME, #{taskClass} AS TASK_CLASS,
+                   #{enabled} AS ENABLED, #{intervalMinutes} AS INTERVAL_MINUTES,
+                   #{cronExpr} AS CRON_EXPR, #{remark} AS REMARK
+            FROM DUAL
+        ) S
+        ON (T.ID = S.ID)
+        WHEN MATCHED THEN
+            UPDATE SET T.TASK_NAME = S.TASK_NAME,
+                       T.TASK_CLASS = S.TASK_CLASS,
+                       T.ENABLED = S.ENABLED,
+                       T.INTERVAL_MINUTES = S.INTERVAL_MINUTES,
+                       T.CRON_EXPR = S.CRON_EXPR,
+                       T.REMARK = S.REMARK,
+                       T.UPDATE_TIME = TO_CHAR(NOW(), 'yyyy-MM-dd HH24:mi:ss')
+        WHEN NOT MATCHED THEN
+            INSERT (ID, TASK_NAME, TASK_CLASS, ENABLED, INTERVAL_MINUTES, CRON_EXPR, REMARK, CREATE_TIME, UPDATE_TIME)
+            VALUES (#{id}, #{taskName}, #{taskClass}, #{enabled}, #{intervalMinutes}, #{cronExpr}, #{remark},
+                    TO_CHAR(NOW(), 'yyyy-MM-dd HH24:mi:ss'), TO_CHAR(NOW(), 'yyyy-MM-dd HH24:mi:ss'))
+    </insert>
+
+</mapper>

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.zjtyphoon.ZJ_TFData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_TFPojo">
+        select A.* from ZJ_TF A
+        <where>
+            <if test="ID != null and ID != ''">
+                and ZJ_ID = #{ID}
+            </if>
+            <if test="key != null and key != ''">
+                and (
+                ZJ_TFM like concat('%',concat(#{key},'%'))
+                or ZJ_TFBH like concat('%',concat(#{key},'%'))
+                )
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and ZJ_TFDATE >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and ZJ_TFDATE <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and ZJ_ISCOMPLETED in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="tfbhList != null and tfbhList.size() > 0">
+                and ZJ_TFBH in
+                <foreach collection="tfbhList" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+
+<!--    <select id="selectListandzhuanti" resultType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_TFZTPojo">-->
+<!--        select A.*,B.ID as ZT_ID,B.STM,B.ETM from ZJ_TF A left join  (select * from SWZZ_FLOODTIDEDATA.zhuanti where DDWJ='提供2023') B-->
+<!--        on A.ZJ_TFBH=B.STATUS-->
+<!--        <where>-->
+<!--            <if test="ID != null and ID != ''">-->
+<!--                and ZJ_ID = #{ID}-->
+<!--            </if>-->
+<!--            <if test="key != null and key != ''">-->
+<!--                and (-->
+<!--                ZJ_TFM like concat('%',concat(#{key},'%'))-->
+<!--                or ZJ_TFBH like concat('%',concat(#{key},'%'))-->
+<!--                )-->
+<!--            </if>-->
+<!--            <if test="stime != null and stime != ''">-->
+<!--                <![CDATA[ and ZJ_TFDATE >= #{stime} ]]>-->
+<!--            </if>-->
+<!--            <if test="etime != null and etime != ''">-->
+<!--                <![CDATA[ and ZJ_TFDATE <= #{etime} ]]>-->
+<!--            </if>-->
+<!--            <if test="type != null and type.size() > 0">-->
+<!--                and ZJ_ISCOMPLETED in-->
+<!--                <foreach collection="type" open="(" close=")" item="item" separator=",">-->
+<!--                    #{item}-->
+<!--                </foreach>-->
+<!--            </if>-->
+<!--            <if test="tfbhList != null and tfbhList.size() > 0">-->
+<!--                and ZJ_TFBH in-->
+<!--                <foreach collection="tfbhList" open="(" close=")" item="item" separator=",">-->
+<!--                    #{item}-->
+<!--                </foreach>-->
+<!--            </if>-->
+<!--        </where>-->
+<!--        <if test="startindex != null and pagesize != null">-->
+<!--            limit #{startindex},#{pagesize}-->
+<!--        </if>-->
+
+<!--        order by A.ZJ_TFBH desc-->
+<!--    </select>-->
+
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM ZJ_TF
+        <where>
+            <if test="ID != null and ID != ''">
+                and ZJ_ID = #{ID}
+            </if>
+            <if test="key != null and key != ''">
+                and (
+                ZJ_TFM like concat('%',concat(#{key},'%'))
+                or ZJ_TFBH like concat('%',concat(#{key},'%'))
+                )
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and ZJ_TFDATE >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and ZJ_TFDATE <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and ZJ_ISCOMPLETED in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="tfbhList != null and tfbhList.size() > 0">
+                and ZJ_TFBH in
+                <foreach collection="tfbhList" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_TFPojo">
+        insert into ZJ_TF
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ZJ_ID != null">
+                ZJ_ID,
+            </if>
+            <if test="ZJ_TFBH != null and ZJ_TFBH != ''">
+                ZJ_TFBH,
+            </if>
+            <if test="ZJ_TFM != null and ZJ_TFM != ''">
+                ZJ_TFM,
+            </if>
+            <if test="ZJ_TFME != null and ZJ_TFME != ''">
+                ZJ_TFME,
+            </if>
+            <if test="ZJ_TFLAND != null and ZJ_TFLAND != ''">
+                ZJ_TFLAND,
+            </if>
+            <if test="ZJ_TFDATE != null and ZJ_TFDATE != ''">
+                ZJ_TFDATE,
+            </if>
+            <if test="ZJ_BEDIT != null">
+                ZJ_BEDIT,
+            </if>
+            <if test="ZJ_ISCOMPLETED != null">
+                ZJ_ISCOMPLETED,
+            </if>
+            <if test="ZJ_REMARK != null and ZJ_REMARK != ''">
+                ZJ_REMARK,
+            </if>
+            <if test="ZT_ZJ_YDSD != null">
+                ZT_ZJ_YDSD,
+            </if>
+            <if test="ZJ_SevenRadius != null">
+                ZJ_SevenRadius,
+            </if>
+            <if test="ZJ_TenRadius != null">
+                ZJ_TenRadius,
+            </if>
+            <if test="ZJ_Grade != null">
+                ZJ_Grade,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ZJ_ID != null">
+                #{ZJ_ID},
+            </if>
+            <if test="ZJ_TFBH != null and ZJ_TFBH != ''">
+                #{ZJ_TFBH},
+            </if>
+            <if test="ZJ_TFM != null and ZJ_TFM != ''">
+                #{ZJ_TFM},
+            </if>
+            <if test="ZJ_TFME != null and ZJ_TFME != ''">
+                #{ZJ_TFME},
+            </if>
+            <if test="ZJ_TFLAND != null and ZJ_TFLAND != ''">
+                #{ZJ_TFLAND},
+            </if>
+            <if test="ZJ_TFDATE != null and ZJ_TFDATE != ''">
+                #{ZJ_TFDATE},
+            </if>
+            <if test="ZJ_BEDIT != null">
+                #{ZJ_BEDIT},
+            </if>
+            <if test="ZJ_ISCOMPLETED != null">
+                #{ZJ_ISCOMPLETED},
+            </if>
+            <if test="ZJ_REMARK != null and ZJ_REMARK != ''">
+                #{ZJ_REMARK},
+            </if>
+            <if test="ZT_ZJ_YDSD != null">
+                #{ZT_ZJ_YDSD},
+            </if>
+            <if test="ZJ_SevenRadius != null">
+                #{ZJ_SevenRadius},
+            </if>
+            <if test="ZJ_TenRadius != null">
+                #{ZJ_TenRadius},
+            </if>
+            <if test="ZJ_Grade != null">
+                #{ZJ_Grade},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_TFPojo">
+        update ZJ_TF
+        <set>
+            <if test="ZJ_TFBH != null and ZJ_TFBH != ''">
+                ZJ_TFBH = #{ZJ_TFBH},
+            </if>
+            <if test="ZJ_TFM != null and ZJ_TFM != ''">
+                ZJ_TFM = #{ZJ_TFM},
+            </if>
+            <if test="ZJ_TFME != null and ZJ_TFME != ''">
+                ZJ_TFME = #{ZJ_TFME},
+            </if>
+            <if test="ZJ_TFLAND != null and ZJ_TFLAND != ''">
+                ZJ_TFLAND = #{ZJ_TFLAND},
+            </if>
+            <if test="ZJ_TFDATE != null and ZJ_TFDATE != ''">
+                ZJ_TFDATE = #{ZJ_TFDATE},
+            </if>
+            <if test="ZJ_BEDIT != null">
+                ZJ_BEDIT = #{ZJ_BEDIT},
+            </if>
+            <if test="ZJ_ISCOMPLETED != null">
+                ZJ_ISCOMPLETED = #{ZJ_ISCOMPLETED},
+            </if>
+            <if test="ZJ_REMARK != null and ZJ_REMARK != ''">
+                ZJ_REMARK = #{ZJ_REMARK},
+            </if>
+            <if test="ZT_ZJ_YDSD != null">
+                ZT_ZJ_YDSD = #{ZT_ZJ_YDSD},
+            </if>
+            <if test="ZJ_SevenRadius != null">
+                ZJ_SevenRadius = #{ZJ_SevenRadius},
+            </if>
+            <if test="ZJ_TenRadius != null">
+                ZJ_TenRadius = #{ZJ_TenRadius},
+            </if>
+            <if test="ZJ_Grade != null">
+                ZJ_Grade = #{ZJ_Grade},
+            </if>
+        </set>
+        where ZJ_ID = #{ZJ_ID}
+    </update>
+    <delete id="deleteOne">
+        delete from ZJ_TF where ZJ_ID = #{ID}
+    </delete>
+
+    <insert id="insertALL" parameterType="list">
+        insert into ZJ_TF
+        (
+        ZJ_ID,
+        ZJ_TFBH,
+        ZJ_TFM,
+        ZJ_TFME,
+        ZJ_TFLAND,
+        ZJ_TFDATE,
+        ZJ_BEDIT,
+        ZJ_ISCOMPLETED,
+        ZJ_REMARK,
+        ZT_ZJ_YDSD,
+        ZJ_SevenRadius,
+        ZJ_TenRadius,
+        ZJ_Grade
+        ) values
+        <foreach collection="objList" item="obj" separator=",">
+            (
+            #{obj.ZJ_ID},
+            #{obj.ZJ_TFBH},
+            #{obj.ZJ_TFM},
+            #{obj.ZJ_TFME},
+            #{obj.ZJ_TFLAND},
+            #{obj.ZJ_TFDATE},
+            #{obj.ZJ_BEDIT},
+            #{obj.ZJ_ISCOMPLETED},
+            #{obj.ZJ_REMARK},
+            #{obj.ZT_ZJ_YDSD},
+            #{obj.ZJ_SevenRadius},
+            #{obj.ZJ_TenRadius},
+            #{obj.ZJ_Grade}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="updateALL" parameterType="list">
+        <foreach collection="objList" item="obj" separator=";">
+            update ZJ_TF
+            <set>
+                <if test="obj.ZJ_TFBH != null and obj.ZJ_TFBH != ''">
+                    ZJ_TFBH = #{obj.ZJ_TFBH},
+                </if>
+                <if test="obj.ZJ_TFM != null and obj.ZJ_TFM != ''">
+                    ZJ_TFM = #{obj.ZJ_TFM},
+                </if>
+                <if test="obj.ZJ_TFME != null and obj.ZJ_TFME != ''">
+                    ZJ_TFME = #{obj.ZJ_TFME},
+                </if>
+                <if test="obj.ZJ_TFLAND != null and obj.ZJ_TFLAND != ''">
+                    ZJ_TFLAND = #{obj.ZJ_TFLAND},
+                </if>
+                <if test="obj.ZJ_TFDATE != null and obj.ZJ_TFDATE != ''">
+                    ZJ_TFDATE = #{obj.ZJ_TFDATE},
+                </if>
+                <if test="obj.ZJ_BEDIT != null">
+                    ZJ_BEDIT = #{obj.ZJ_BEDIT},
+                </if>
+                <if test="obj.ZJ_ISCOMPLETED != null">
+                    ZJ_ISCOMPLETED = #{obj.ZJ_ISCOMPLETED},
+                </if>
+                <if test="obj.ZJ_REMARK != null and obj.ZJ_REMARK != ''">
+                    ZJ_REMARK = #{obj.ZJ_REMARK},
+                </if>
+                <if test="obj.ZT_ZJ_YDSD != null">
+                    ZT_ZJ_YDSD = #{obj.ZT_ZJ_YDSD},
+                </if>
+                <if test="obj.ZJ_SevenRadius != null">
+                    ZJ_SevenRadius = #{obj.ZJ_SevenRadius},
+                </if>
+                <if test="obj.ZJ_TenRadius != null">
+                    ZJ_TenRadius = #{obj.ZJ_TenRadius},
+                </if>
+                <if test="obj.ZJ_Grade != null">
+                    ZJ_Grade = #{obj.ZJ_Grade},
+                </if>
+            </set>
+            where ZJ_ID = #{obj.ZJ_ID}
+        </foreach>
+    </update>
+
+    <delete id="deleteALL">
+        delete from ZJ_TF where ZJ_ID in
+        <foreach collection="objList" open="(" close=")" item="obj" separator=",">
+            #{obj.stcd,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+    <select id="SelectMaxId" resultType="integer">
+        select MAX(ZJ_ID) from ZJ_TF
+    </select>
+
+    <select id="selectListByTfbh" resultType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_TFPojo">
+        select top 1 ZJ_TFBH from ZJ_TF
+        <where>
+            <if test="Tfbh != null and Tfbh != ''">
+                and ZJ_TFBH = #{Tfbh}
+            </if>
+        </where>
+        order by ZJ_TFBH desc
+    </select>
+
+    <select id="selectTFBHList" resultType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_TFPojo">
+        select ZJ_TFBH from ZJ_TF order by ZJ_TFBH desc
+    </select>
+</mapper>

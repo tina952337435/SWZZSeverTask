@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.Tz_watersheddataData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.Tz_watersheddataPojo">
+        select a.* from "tz_watersheddata" a
+        <where>
+            <if test="ID != null and ID != ''">
+                and KEYID = #{ID}
+            </if>
+
+            <if test="key != null and key != ''">
+                and FPDR = #{key}
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and RLSTM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and RLSTM <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and TYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM "tz_watersheddata"
+        <where>
+            <if test="ID != null and ID != ''">
+                and KEYID = #{ID}
+            </if>
+            <if test="key != null and key != ''">
+                and FPDR = #{key}
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and RLSTM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and RLSTM <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and TYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tz_watersheddataPojo">
+        insert into "tz_watersheddata"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="KEYID != null and KEYID != ''">
+                KEYID,
+            </if>
+            <if test="FTM != null and FTM != ''">
+                FTM,
+            </if>
+            <if test="RLSTM != null and RLSTM != ''">
+                RLSTM,
+            </if>
+            <if test="FPDR != null">
+                FPDR,
+            </if>
+            <if test="DRP != null">
+                DRP,
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                TYPE,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="KEYID != null and KEYID != ''">
+                #{KEYID},
+            </if>
+            <if test="FTM != null and FTM != ''">
+                #{FTM},
+            </if>
+            <if test="RLSTM != null and RLSTM != ''">
+                #{RLSTM},
+            </if>
+            <if test="FPDR != null">
+                #{FPDR},
+            </if>
+            <if test="DRP != null">
+                #{DRP},
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                #{TYPE},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tz_watersheddataPojo">
+        update "tz_watersheddata"
+        <set>
+            <if test="DRP != null">
+                DRP = #{DRP},
+            </if>
+        </set>
+        where KEYID = #{KEYID}
+        and FTM = #{FTM}
+        and RLSTM = #{RLSTM}
+        and FPDR = #{FPDR}
+        and TYPE = #{TYPE}
+    </update>
+    <delete id="deleteOne">
+        delete from "tz_watersheddata" where KEYID = #{KEYID}
+        and FTM = #{FTM}
+        and RLSTM = #{RLSTM}
+        and FPDR = #{FPDR}
+        and TYPE = #{TYPE}
+    </delete>
+
+    <insert id="insertALL" parameterType="list">
+        insert into "tz_watersheddata"(
+            KEYID,
+            FTM,
+            RLSTM,
+            FPDR,
+            DRP,
+            TYPE)
+            values
+        <foreach collection="bpPojo" item="item" separator=",">
+            (#{item.KEYID,jdbcType=VARCHAR},
+            #{item.FTM,jdbcType=VARCHAR},
+            #{item.RLSTM,jdbcType=VARCHAR},
+            #{item.FPDR,jdbcType=DOUBLE},
+            #{item.DRP,jdbcType=DOUBLE},
+            #{item.TYPE,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <delete id="deleteALL" parameterType="list">
+        delete from "tz_watersheddata" where
+        <foreach collection="bpPojo" item="item" separator="or">
+            (KEYID = #{item.KEYID,jdbcType=VARCHAR}
+            and FTM = #{item.FTM,jdbcType=VARCHAR}
+            and RLSTM = #{item.RLSTM,jdbcType=VARCHAR}
+            and FPDR = #{item.FPDR,jdbcType=DOUBLE}
+            and TYPE = #{item.TYPE,jdbcType=VARCHAR})
+        </foreach>
+    </delete>
+
+    <select id="selectByTimeAndFPDR" resultType="timertaskserver.workserver.pojo.swzzqxsj.Tz_watersheddataPojo">
+         select * from  "tz_watersheddata"
+         <where>
+             RLSTM in (
+             select  max(RLSTM) as RLSTM  from "tz_watersheddata" where
+             TYPE = '上海气象台'
+             <if test="fpdr != null and fpdr.size() > 0">
+                 and FPDR in
+                 <foreach collection="fpdr" open="(" close=")" item="item" separator=",">
+                     #{item}
+                 </foreach>
+             </if>
+             <if test="rlstime != null and rlstime != ''">
+                 <![CDATA[ and RLSTM >= #{rlstime} ]]>
+             </if>
+             <if test="rletime != null and rletime != ''">
+                 <![CDATA[ and RLSTM <= #{rletime} ]]>
+             </if>
+             group BY FPDR
+             )
+             and TYPE = '上海气象台'
+             <if test="stime != null and stime != ''">
+                 <![CDATA[ and FTM >= #{stime} ]]>
+             </if>
+             <if test="etime != null and etime != ''">
+                 <![CDATA[ and FTM <= #{etime} ]]>
+             </if>
+             <if test="fpdr != null and fpdr.size() > 0">
+                 and FPDR in
+                 <foreach collection="fpdr" open="(" close=")" item="item" separator=",">
+                     #{item}
+                 </foreach>
+             </if>
+         </where>
+    </select>
+
+    <update id="updateALL" parameterType="list">
+        <foreach collection="bpPojo" item="obj" separator=";">
+            update "tz_watersheddata"
+            <set>
+                <if test="obj.DRP != null">
+                    DRP = #{obj.DRP,jdbcType=DOUBLE},
+                </if>
+            </set>
+            where KEYID = #{obj.KEYID,jdbcType=VARCHAR}
+            and FTM = #{obj.FTM,jdbcType=VARCHAR}
+            and RLSTM = #{obj.RLSTM,jdbcType=VARCHAR}
+            and FPDR = #{obj.FPDR,jdbcType=DOUBLE}
+            and TYPE = #{obj.TYPE,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+</mapper>

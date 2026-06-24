@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.Tba_weacontentData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.Tba_weacontentPojo">
+        select TBA_WEAID,
+        TBA_FILENAME,
+        TBA_INFOTYPE,
+        TBA_FILETYPE,
+        TBA_GETDATE,
+        TBA_DESDATE,
+        TBA_GUIDANG,
+        TBA_FLAG,
+        TBA_NOTE
+        from (
+        select a.* from TBA_WEACONTENT a
+        <where>
+            <if test="ID != null and ID != ''">
+                and TBA_WEAID = #{ID}
+            </if>
+            <if test="key != null and key != ''">
+                and TBA_FILENAME like concat('%',concat(#{key},'%'))
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TBA_DESDATE >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TBA_DESDATE <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and TBA_INFOTYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+
+        </where>
+        )
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM TBA_WEACONTENT
+        <where>
+            <if test="ID != null and ID != ''">
+                and TBA_WEAID = #{ID}
+            </if>
+            <if test="key != null and key != ''">
+                and TBA_FILENAME like concat('%',concat(#{key},'%'))
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and TBA_DESDATE >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and TBA_DESDATE <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and TBA_INFOTYPE in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tba_weacontentPojo">
+        insert into TBA_WEACONTENT
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="TBA_WEAID != null and TBA_WEAID != ''">
+                TBA_WEAID,
+            </if>
+            <if test="TBA_FILENAME != null and TBA_FILENAME != ''">
+                TBA_FILENAME,
+            </if>
+            <if test="TBA_INFOTYPE != null and TBA_INFOTYPE != ''">
+                TBA_INFOTYPE,
+            </if>
+            <if test="TBA_FILETYPE != null and TBA_FILETYPE != ''">
+                TBA_FILETYPE,
+            </if>
+            <if test="TBA_GETDATE != null and TBA_GETDATE != ''">
+                TBA_GETDATE,
+            </if>
+            <if test="TBA_DESDATE != null and TBA_DESDATE != ''">
+                TBA_DESDATE,
+            </if>
+            <if test="TBA_GUIDANG != null and TBA_GUIDANG != ''">
+                TBA_GUIDANG,
+            </if>
+            <if test="TBA_FLAG != null and TBA_FLAG != ''">
+                TBA_FLAG,
+            </if>
+            <if test="TBA_NOTE != null and TBA_NOTE != ''">
+                TBA_NOTE,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="TBA_WEAID != null and TBA_WEAID != ''">
+                #{TBA_WEAID},
+            </if>
+            <if test="TBA_FILENAME != null and TBA_FILENAME != ''">
+                #{TBA_FILENAME},
+            </if>
+            <if test="TBA_INFOTYPE != null and TBA_INFOTYPE != ''">
+                #{TBA_INFOTYPE},
+            </if>
+            <if test="TBA_FILETYPE != null and TBA_FILETYPE != ''">
+                #{TBA_FILETYPE},
+            </if>
+            <if test="TBA_GETDATE != null and TBA_GETDATE != ''">
+                #{TBA_GETDATE},
+            </if>
+            <if test="TBA_DESDATE != null and TBA_DESDATE != ''">
+                #{TBA_DESDATE},
+            </if>
+            <if test="TBA_GUIDANG != null and TBA_GUIDANG != ''">
+                #{TBA_GUIDANG},
+            </if>
+            <if test="TBA_FLAG != null and TBA_FLAG != ''">
+                #{TBA_FLAG},
+            </if>
+            <if test="TBA_NOTE != null and TBA_NOTE != ''">
+                #{TBA_NOTE},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tba_weacontentPojo">
+        update TBA_WEACONTENT
+        <set>
+            <if test="TBA_FILENAME != null and TBA_FILENAME != ''">
+                TBA_FILENAME = #{TBA_FILENAME},
+            </if>
+            <if test="TBA_INFOTYPE != null and TBA_INFOTYPE != ''">
+                TBA_INFOTYPE = #{TBA_INFOTYPE},
+            </if>
+            <if test="TBA_FILETYPE != null and TBA_FILETYPE != ''">
+                TBA_FILETYPE = #{TBA_FILETYPE},
+            </if>
+            <if test="TBA_GETDATE != null and TBA_GETDATE != ''">
+                TBA_GETDATE = #{TBA_GETDATE},
+            </if>
+            <if test="TBA_DESDATE != null and TBA_DESDATE != ''">
+                TBA_DESDATE = #{TBA_DESDATE},
+            </if>
+            <if test="TBA_GUIDANG != null and TBA_GUIDANG != ''">
+                TBA_GUIDANG =  #{TBA_GUIDANG},
+            </if>
+            <if test="TBA_FLAG != null and TBA_FLAG != ''">
+                TBA_FLAG =  #{TBA_FLAG},
+            </if>
+            <if test="TBA_NOTE != null and TBA_NOTE != ''">
+                TBA_NOTE =  #{TBA_NOTE},
+            </if>
+        </set>
+        where TBA_WEAID = #{TBA_WEAID}
+    </update>
+    <delete id="deleteOne">
+        delete from TBA_WEACONTENT where TBA_WEAID = #{ID}
+    </delete>
+
+    <insert id="insertALL" parameterType="list">
+        insert into TBA_WEACONTENT
+        (
+            TBA_WEAID,
+            TBA_FILENAME,
+            TBA_INFOTYPE,
+            TBA_FILETYPE,
+            TBA_GETDATE,
+            TBA_DESDATE,
+            TBA_GUIDANG,
+            TBA_FLAG,
+            TBA_NOTE
+        )
+        values
+        <foreach collection="bpPojo" item="item" separator=",">
+            (
+            #{item.TBA_WEAID,jdbcType=VARCHAR},
+            #{item.TBA_FILENAME,jdbcType=VARCHAR},
+            #{item.TBA_INFOTYPE,jdbcType=VARCHAR},
+            #{item.TBA_FILETYPE,jdbcType=VARCHAR},
+            #{item.TBA_GETDATE,jdbcType=VARCHAR},
+            #{item.TBA_DESDATE,jdbcType=VARCHAR},
+            #{item.TBA_GUIDANG,jdbcType=VARCHAR},
+            #{item.TBA_FLAG,jdbcType=VARCHAR},
+            #{item.TBA_NOTE,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteALL" parameterType="list">
+        delete from TBA_WEACONTENT where TBA_WEAID in
+        <foreach collection="bpPojo" open="(" close=")" item="item" separator=",">
+            #{item.stcd,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+    <update id="updateALL" parameterType="list">
+        <foreach collection="bpPojo" item="obj" separator=";">
+            update TBA_WEACONTENT
+            <set>
+                <if test="obj.TBA_FILENAME != null and obj.TBA_FILENAME != ''">
+                    TBA_FILENAME = #{obj.TBA_FILENAME,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.TBA_INFOTYPE != null and obj.TBA_INFOTYPE != ''">
+                    TBA_INFOTYPE = #{obj.TBA_INFOTYPE,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.TBA_FILETYPE != null and obj.TBA_FILETYPE != ''">
+                    TBA_FILETYPE = #{obj.TBA_FILETYPE,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.TBA_GETDATE != null and obj.TBA_GETDATE != ''">
+                    TBA_GETDATE = #{obj.TBA_GETDATE,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.TBA_DESDATE != null and obj.TBA_DESDATE != ''">
+                    TBA_DESDATE = #{obj.TBA_DESDATE,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.TBA_GUIDANG != null and obj.TBA_GUIDANG != ''">
+                    TBA_GUIDANG =  #{obj.TBA_GUIDANG,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.TBA_FLAG != null and obj.TBA_FLAG != ''">
+                    TBA_FLAG =  #{obj.TBA_FLAG,jdbcType=VARCHAR},
+                </if>
+                <if test="obj.TBA_NOTE != null and obj.TBA_NOTE != ''">
+                    TBA_NOTE =  #{obj.TBA_NOTE,jdbcType=VARCHAR},
+                </if>
+            </set>
+            where TBA_WEAID = #{obj.TBA_WEAID,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+</mapper>

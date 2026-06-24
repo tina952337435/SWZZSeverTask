@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:http="http://www.w3.org/1999/xhtml">
+<head th:include="css_js_main::main">
+    <meta charset="UTF-8">
+    <title>智慧系统</title>
+
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+<div class="layui-container"  style="margin:0 auto;margin-left:30px;">
+    <!-- 内容开始 -->
+    <div class="layui-main site-inline" style="min-height:500px;width: 150px">
+            <div class="site-tree" id="tba-help-list" style="min-height:500px;">
+                <ul class="layui-tree">
+                    <blockquote class="layui-elem-quote layui-text">
+                        <h3>水情信息</h3>
+                    </blockquote>
+                    <li class="site-tree-noicon">
+                        <a href="toPage?url=enGineeRing" target="targetText">
+                            <cite>工情信息</cite>
+                        </a>
+                    </li>
+
+                    <li class="site-tree-noicon">
+                        <a href="toPage?url=water" target="targetText">
+                            <cite>水情信息</cite>
+                        </a>
+                    </li>
+
+                    <li class="site-tree-noicon">
+                        <a href="">
+                            <cite>数据上报</cite>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+
+    </div>
+    <div style="z-index: 9999;margin-left:90px;margin-top:-500px;border-width:1px !important;">
+        <iframe src="toPage?url=enGineeRing"   id="rightPage" style="z-index: 9999;margin-left:90px;" name="targetText" ></iframe>
+
+    </div>
+    <!-- 内容结束 -->
+</div>
+</div>
+<div class="layui-row tba-layui-footer" style="margin:0 auto;width:90%;text-align:center">
+    <!-- 底部固定区域 -->
+    <span >版权所有：上海高起信息技术有限公司</span>
+</div>
+
+
+<script>
+    jQuery(function($) {
+
+        $('#rightPage').height(window.document.documentElement.scrollHeight*0.95);
+        $('#rightPage').width(window.document.documentElement.scrollWidth*0.80);
+
+
+    })
+    var data = [];
+
+    //JavaScript代码区域
+    layui.use(['jquery','element','layer'], function(){
+        var $ = layui.jquery;
+
+    });
+
+
+
+</script>
+</body>
+</html>

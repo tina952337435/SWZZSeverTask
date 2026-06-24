@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.zjtyphoon.ZJ_XSData">
+    <insert id="insertToOne" parameterType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_XSPojo">
+        insert into ZJ_XS
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="PTFBH != null">
+                PTFBH,
+            </if>
+            <if test="TFBH != null">
+                TFBH,
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                TYPE,
+            </if>
+            <if test="TFSTIME != null and TFSTIME != ''">
+                TFSTIME,
+            </if>
+            <if test="TFETIME != null and TFETIME != ''">
+                TFETIME,
+            </if>
+            <if test="TFNOTE != null and TFNOTE != ''">
+                TFNOTE,
+            </if>
+            <if test="TFXIANGSIDU != null">
+                TFXIANGSIDU,
+            </if>
+            <if test="ISDEL != null and ISDEL != ''">
+                ISDEL,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="PTFBH != null">
+                #{PTFBH},
+            </if>
+            <if test="TFBH != null">
+                #{TFBH},
+            </if>
+            <if test="TYPE != null and TYPE != ''">
+                #{TYPE},
+            </if>
+            <if test="TFSTIME != null and TFSTIME != ''">
+                #{TFSTIME},
+            </if>
+            <if test="TFETIME != null and TFETIME != ''">
+                #{TFETIME},
+            </if>
+            <if test="TFNOTE != null and TFNOTE != ''">
+                #{TFNOTE},
+            </if>
+            <if test="TFXIANGSIDU != null">
+                #{TFXIANGSIDU},
+            </if>
+            <if test="ISDEL != null and ISDEL != ''">
+                #{ISDEL},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_XSPojo">
+        select * from ZJ_XS
+        <where>
+            <if test="ptfbh != null and ptfbh != ''">
+                and PTFBH = #{ptfbh}
+            </if>
+            <if test="tfbh != null and tfbh != ''">
+                and TFBH = #{tfbh}
+            </if>
+            <if test="Type != null and Type == 'true'">
+                and TYPE = '相似台风'
+            </if>
+        </where>
+    </select>
+
+    <update id="upDateToOne" parameterType="timertaskserver.workserver.pojo.zjtyphoon.ZJ_XSPojo">
+        update ZJ_XS
+        <set>
+            <if test="TFNOTE != null and TFNOTE != ''">
+                TFNOTE = #{TFNOTE},
+            </if>
+            <if test="TFXIANGSIDU != null">
+                TFXIANGSIDU = #{TFXIANGSIDU},
+            </if>
+        </set>
+        where PTFBH = #{PTFBH} and TFBH = #{TFBH} and TYPE = '相似台风'
+    </update>
+</mapper>

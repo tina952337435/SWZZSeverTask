@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.Tz_ncfilelistData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.Tz_ncfilelistPojo">
+        select a.* from TZ_NCFILELIST a
+        <where>
+            <if test="ID != null and ID != ''">
+                and ID = #{ID}
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and RLSTM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and RLSTM <= #{etime} ]]>
+            </if>
+
+            <if test="type != null and type.size() > 0">
+                and FPDR in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM TZ_NCFILELIST
+        <where>
+            <if test="ID != null and ID != ''">
+                and ID = #{ID}
+            </if>
+            <if test="stime != null and stime != ''">
+                <![CDATA[ and RLSTM >= #{stime} ]]>
+            </if>
+            <if test="etime != null and etime != ''">
+                <![CDATA[ and RLSTM <= #{etime} ]]>
+            </if>
+            <if test="type != null and type.size() > 0">
+                and FPDR in
+                <foreach collection="type" open="(" close=")" item="item" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tz_ncfilelistPojo">
+        insert into TZ_NCFILELIST
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ID != null and ID != ''">
+                ID,
+            </if>
+            <if test="TM != null and TM != ''">
+                TM,
+            </if>
+            <if test="RLSTM != null and RLSTM !=''">
+                RLSTM,
+            </if>
+            <if test="FPDR != null">
+                FPDR,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ID != null and ID != ''">
+                #{ID},
+            </if>
+            <if test="TM != null and TM != ''">
+                #{TM},
+            </if>
+            <if test="RLSTM != null and RLSTM !=''">
+                #{RLSTM},
+            </if>
+            <if test="FPDR != null">
+                #{FPDR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tz_ncfilelistPojo">
+        update TZ_NCFILELIST
+        <set>
+            <if test="TM != null and TM != ''">
+                TM = #{TM},
+            </if>
+            <if test="RLSTM != null and RLSTM !=''">
+                RLSTM = #{RLSTM},
+            </if>
+            <if test="FPDR != null">
+                FPDR = #{FPDR},
+            </if>
+        </set>
+        where ID = #{ID}
+    </update>
+    <delete id="deleteOne">
+        delete from TZ_NCFILELIST where ID = #{ID}
+    </delete>
+
+    <insert id="insertAll" parameterType="timertaskserver.workserver.pojo.swzzqxsj.Tz_ncfilelistPojo">
+        insert into TZ_NCFILELIST
+        (
+            ID,
+            TM,
+            RLSTM,
+            FPDR
+        )
+        values
+        <foreach collection="objList" item="obj" separator=",">
+            (
+            #{obj.ID},
+            #{obj.TM},
+            #{obj.RLSTM},
+            #{obj.FPDR}
+            )
+        </foreach>
+    </insert>
+</mapper>

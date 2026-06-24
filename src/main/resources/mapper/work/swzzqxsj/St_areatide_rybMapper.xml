@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzqxsj.St_areatide_rybData">
+    <select id="selectList" resultType="timertaskserver.workserver.pojo.swzzqxsj.St_areatide_rybPojo">
+        select a.* from "st_areatide_ryb" a
+        <where>
+            <if test="ID != null and ID != ''">
+                and ID = #{ID}
+            </if>
+
+<!--            <if test="key != null and key != ''">-->
+<!--                and NAME like concat('%',concat(#{key},'%'))-->
+<!--                or sex like concat('%',concat(#{key},'%'))-->
+<!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+<!--                or MEMO like concat('%',concat(#{key},'%'))-->
+<!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+<!--            </if>-->
+<!--            <if test="stime != null and stime != ''">-->
+<!--                <![CDATA[ and BIRTHDAY >= #{stime} ]]>-->
+<!--            </if>-->
+<!--            <if test="etime != null and etime != ''">-->
+<!--                <![CDATA[ and BIRTHDAY <= #{etime} ]]>-->
+<!--            </if>-->
+<!--            <if test="type != null and type.size() > 0">-->
+<!--                and GROUPID in-->
+<!--                <foreach collection="type" open="(" close=")" item="item" separator=",">-->
+<!--                    #{item}-->
+<!--                </foreach>-->
+<!--            </if>-->
+        </where>
+        <if test="startindex != null and pagesize != null">
+            limit #{startindex},#{pagesize}
+        </if>
+    </select>
+
+    <select id="selectCount" resultType="integer">
+        SELECT count(1) FROM "st_areatide_ryb"
+        <where>
+            <if test="ID != null and ID != ''">
+                and ID = #{ID}
+            </if>
+            <!--            <if test="key != null and key != ''">-->
+            <!--                and NAME like concat('%',concat(#{key},'%'))-->
+            <!--                or sex like concat('%',concat(#{key},'%'))-->
+            <!--                or JOBTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or TECHTITLE like concat('%',concat(#{key},'%'))-->
+            <!--                or MEMO like concat('%',concat(#{key},'%'))-->
+            <!--                or GROUPNAME like concat('%',concat(#{key},'%'))-->
+            <!--            </if>-->
+            <!--            <if test="stime != null and stime != ''">-->
+            <!--                <![CDATA[ and BIRTHDAY >= #{stime} ]]>-->
+            <!--            </if>-->
+            <!--            <if test="etime != null and etime != ''">-->
+            <!--                <![CDATA[ and BIRTHDAY <= #{etime} ]]>-->
+            <!--            </if>-->
+            <!--            <if test="type != null and type.size() > 0">-->
+            <!--                and GROUPID in-->
+            <!--                <foreach collection="type" open="(" close=")" item="item" separator=",">-->
+            <!--                    #{item}-->
+            <!--                </foreach>-->
+            <!--            </if>-->
+        </where>
+    </select>
+
+    <insert id="insertOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.St_areatide_rybPojo">
+        insert into "st_areatide_ryb"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ID != null and ID != ''">
+                ID,
+            </if>
+            <if test="MINWAVEHEIGHT != null">
+                MINWAVEHEIGHT,
+            </if>
+            <if test="MAXWAVEHEIGHT != null">
+                MAXWAVEHEIGHT,
+            </if>
+            <if test="MINSEATEMP != null">
+                MINSEATEMP,
+            </if>
+            <if test="MAXSEATEMP != null">
+                MAXSEATEMP,
+            </if>
+            <if test="MINTIDEDATE != null and MINTIDEDATE != ''">
+                MINTIDEDATE,
+            </if>
+            <if test="MINTIDE != null">
+                MINTIDE,
+            </if>
+            <if test="MAXTIDEDATE != null and MAXTIDEDATE != ''">
+                MAXTIDEDATE,
+            </if>
+            <if test="MAXTIDE != null">
+                MAXTIDE,
+            </if>
+            <if test="AGING != null">
+                AGING,
+            </if>
+            <if test="UPDATEDATE != null and UPDATEDATE != ''">
+                UPDATEDATE,
+            </if>
+            <if test="UNIT != null and UNIT != ''">
+                UNIT,
+            </if>
+            <if test="AREANAME != null and AREANAME != ''">
+                AREANAME,
+            </if>
+            <if test="AREAID != null and AREAID != ''">
+                AREAID,
+            </if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ID != null and ID != ''">
+                #{ID},
+            </if>
+            <if test="MINWAVEHEIGHT != null">
+                #{MINWAVEHEIGHT},
+            </if>
+            <if test="MAXWAVEHEIGHT != null">
+                #{MAXWAVEHEIGHT},
+            </if>
+            <if test="MINSEATEMP != null">
+                #{MINSEATEMP},
+            </if>
+            <if test="MAXSEATEMP != null">
+                #{MAXSEATEMP},
+            </if>
+            <if test="MINTIDEDATE != null and MINTIDEDATE != ''">
+               #{MINTIDEDATE},
+            </if>
+            <if test="MINTIDE != null">
+                #{MINTIDE},
+            </if>
+            <if test="MAXTIDEDATE != null and MAXTIDEDATE != ''">
+                #{MAXTIDEDATE},
+            </if>
+            <if test="MAXTIDE != null">
+                #{MAXTIDE},
+            </if>
+            <if test="AGING != null">
+                #{AGING},
+            </if>
+            <if test="UPDATEDATE != null and UPDATEDATE != ''">
+                #{UPDATEDATE},
+            </if>
+            <if test="UNIT != null and UNIT != ''">
+                #{UNIT},
+            </if>
+            <if test="AREANAME != null and AREANAME != ''">
+                #{AREANAME},
+            </if>
+            <if test="AREAID != null and AREAID != ''">
+                #{AREAID},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateOne" parameterType="timertaskserver.workserver.pojo.swzzqxsj.St_areatide_rybPojo">
+        update "st_areatide_ryb"
+        <set>
+            <if test="MINWAVEHEIGHT != null">
+                MINWAVEHEIGHT = #{MINWAVEHEIGHT},
+            </if>
+            <if test="MAXWAVEHEIGHT != null">
+                MAXWAVEHEIGHT = #{MAXWAVEHEIGHT},
+            </if>
+            <if test="MINSEATEMP != null">
+                MINSEATEMP = #{MINSEATEMP},
+            </if>
+            <if test="MAXSEATEMP != null">
+                MAXSEATEMP = #{MAXSEATEMP},
+            </if>
+            <if test="MINTIDEDATE != null and MINTIDEDATE != ''">
+                MINTIDEDATE = #{MINTIDEDATE},
+            </if>
+            <if test="MINTIDE != null">
+                MINTIDE = #{MINTIDE},
+            </if>
+            <if test="MAXTIDEDATE != null and MAXTIDEDATE != ''">
+                MAXTIDEDATE = #{MAXTIDEDATE},
+            </if>
+            <if test="MAXTIDE != null">
+                MAXTIDE = #{MAXTIDE},
+            </if>
+            <if test="AGING != null">
+                AGING = #{AGING},
+            </if>
+            <if test="UPDATEDATE != null and UPDATEDATE != ''">
+                UPDATEDATE = #{UPDATEDATE},
+            </if>
+            <if test="UNIT != null and UNIT != ''">
+                UNIT = #{UNIT},
+            </if>
+            <if test="AREANAME != null and AREANAME != ''">
+                AREANAME = #{AREANAME},
+            </if>
+            <if test="AREAID != null and AREAID != ''">
+                AREAID = #{AREAID},
+            </if>
+        </set>
+        where ID = #{ID}
+    </update>
+    <delete id="deleteOne">
+        delete from "st_areatide_ryb" where ID = #{ID}
+    </delete>
+</mapper>
