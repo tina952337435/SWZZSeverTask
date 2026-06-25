@@ -2125,8 +2125,10 @@ public class MyTimerTask {
                     String ftm = map.get("FTM").toString();
                     String FTM = null;
                     try {
-                        FTM = dateFormat.format(new Date(dateFormat.parse(ftm).getTime() + ((i+1) * 60 * 60 * 1000)));
-                        writeLogTxtStr("=====FQ6HourWaterGong=====发布时间RLSTM:"+map.get("RLSTM").toString()+",时间FTM:"+FTM, "FQ6HourWaterGong.txt");
+                        FTM = dateFormat.format(new Date(dateFormat.parse(ftm).getTime() + ((i + 1) * 60 * 60 * 1000)));
+                        writeLogTxtStr(
+                                "=====FQ6HourWaterGong=====发布时间RLSTM:" + map.get("RLSTM").toString() + ",时间FTM:" + FTM,
+                                "FQ6HourWaterGong.txt");
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
@@ -2163,8 +2165,21 @@ public class MyTimerTask {
 
     public void insertDataWater6HourNew(List<SDE_AREA> list, String TM, int hourlySteps) {
         try {
+            DateTimeFormatter formatterYMDHM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
+            LocalDateTime currentDateLog = LocalDateTime.now();
+            String formattedDateLog = currentDateLog.format(formatterYMDHM);
+
+            writeLogTxtStr("==========进入insertDataWater6HourNew=================",
+                    "FQ6HourWaterGong" + formattedDateLog + ".txt");
+
             List<SDE_AREA6HOURPojo> listArea = sdeArea6HOURData.selectList(null, null, null);
+            writeLogTxtStr("==========insertDataWater6HourNew区域数量：" + listArea.size() + "=================",
+                    "FQ6HourWaterGong" + formattedDateLog + ".txt");
+
             List<Tz_watershedPojo> listSHED = tzWatershedData.selectList(null, null, null, null, null, null, null);
+
+            writeLogTxtStr("==========insertDataWater6HourNew网格数量：" + listSHED.size() + "=================",
+                    "FQ6HourWaterGong" + formattedDateLog + ".txt");
 
             List<Tz_watersheddataPojo> listData = new ArrayList<>();
             StringBuilder sbFID = new StringBuilder();
@@ -2199,7 +2214,7 @@ public class MyTimerTask {
                     }
                     Tz_watersheddataPojo dto = new Tz_watersheddataPojo();
                     LocalDateTime FTMNew = LocalDateTime.parse(TM, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                            .plusHours(h+1);//记录结束时间
+                            .plusHours(h + 1);// 记录结束时间
                     String formattedDateTime = FTMNew.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
                     dto.setKEYID(listSHED.get(num).getKEYID());
@@ -2211,6 +2226,8 @@ public class MyTimerTask {
                     listData.add(dto);
                 }
             }
+            writeLogTxtStr("==========6小时的数据总量为：" + listData.size() + "=================",
+                    "FQ6HourWaterGong" + formattedDateLog + ".txt");
             if (listData.size() > 0) {
                 tzWatersheddataData.insertALL(listData);
             }
@@ -3652,7 +3669,6 @@ public class MyTimerTask {
             header.put("Content-Type", "application/json;charset=UTF-8");
             header.put("Authorization", token);
 
-            
             try {
                 // 先去插入数据*****************************
                 String resulthighlo = apihelper.apipost(ServerIP + "SWZZ_MODE_ES_TIDALFORECAST/getFangjiangOverflow",
@@ -3665,21 +3681,19 @@ public class MyTimerTask {
                 int total = (int) mapList.get("total");
                 if (total > 0) {
                     writeLogTxtStr("放江量数据同步成功", "SynchronizeDataFangjiang" + formattedDateLog + ".txt");
-                }
-                else{
+                } else {
                     writeLogTxtStr("没有放江量入库", "SynchronizeDataFangjiang" + formattedDateLog + ".txt");
                 }
             } catch (Exception e) {
-                writeLogTxtStr("放江量数据同步报错："+e.getMessage(), "SynchronizeDataFangjiang" + formattedDateLog + ".txt");
+                writeLogTxtStr("放江量数据同步报错：" + e.getMessage(), "SynchronizeDataFangjiang" + formattedDateLog + ".txt");
             }
 
         } catch (Exception e) {
-            writeLogTxtStr("放江量数据同步报错："+e.getMessage(), "SynchronizeDataFangjiang" + formattedDateLog + ".txt");
+            writeLogTxtStr("放江量数据同步报错：" + e.getMessage(), "SynchronizeDataFangjiang" + formattedDateLog + ".txt");
         }
     }
 
-
-    public void SyncDataYJXY() throws IOException{
+    public void SyncDataYJXY() throws IOException {
         DateTimeFormatter formatterYMDHM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
         LocalDateTime currentDateLog = LocalDateTime.now();
         String formattedDateLog = currentDateLog.format(formatterYMDHM);
