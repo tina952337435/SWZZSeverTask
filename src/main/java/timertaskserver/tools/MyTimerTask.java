@@ -3542,7 +3542,7 @@ public class MyTimerTask {
         try {
             writeLogTxtStr("SynchronizeData开始同步：", "SynchronizeData" + formattedDateLog + ".txt");
             String token = "768ADC6A9E72BFEE4891F1F98650FEEE";
-            String parmasMap = "{\"pathname\":\"5\"}";
+            String parmasMap = "{\"pathname\":\"5,9\"}";
             HashMap<String, Object> header = new HashMap<>();
             header.put("Content-Type", "application/json;charset=UTF-8");
             header.put("Authorization", token);
