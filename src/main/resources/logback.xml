@@ -8,7 +8,7 @@
     <!-- 苏州河项目 -->
     <!-- /data/work/Project/UploadDoc/ -->
 
-    <property name="LOG_FILE" value="/data/work/Project/UploadDoc/logs/myLog.log"/>
+    <property name="LOG_FILE" value="/home/vdb/gaoqi/ModeUploadDoc/logs/myLog.log"/>
 
     <!-- 日志文件的最大大小 -->
     <property name="MAX_FILE_SIZE" value="10MB"/>

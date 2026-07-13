@@ -186,18 +186,25 @@
     </select>
 
     <update id="updateALL" parameterType="list">
-        <foreach collection="bpPojo" item="obj" separator=";">
-            update "tz_watersheddata"
-            <set>
-                <if test="obj.DRP != null">
-                    DRP = #{obj.DRP,jdbcType=DOUBLE},
-                </if>
-            </set>
-            where KEYID = #{obj.KEYID,jdbcType=VARCHAR}
+        update "tz_watersheddata"
+        <set>
+            DRP =
+            <foreach collection="bpPojo" item="obj" open="CASE" close="END">
+                WHEN (KEYID = #{obj.KEYID,jdbcType=VARCHAR}
+                  and FTM = #{obj.FTM,jdbcType=VARCHAR}
+                  and RLSTM = #{obj.RLSTM,jdbcType=VARCHAR}
+                  and FPDR = #{obj.FPDR,jdbcType=DOUBLE}
+                  and TYPE = #{obj.TYPE,jdbcType=VARCHAR})
+                THEN #{obj.DRP,jdbcType=DOUBLE}
+            </foreach>
+        </set>
+        where
+        <foreach collection="bpPojo" item="obj" separator="or">
+            (KEYID = #{obj.KEYID,jdbcType=VARCHAR}
             and FTM = #{obj.FTM,jdbcType=VARCHAR}
             and RLSTM = #{obj.RLSTM,jdbcType=VARCHAR}
             and FPDR = #{obj.FPDR,jdbcType=DOUBLE}
-            and TYPE = #{obj.TYPE,jdbcType=VARCHAR}
+            and TYPE = #{obj.TYPE,jdbcType=VARCHAR})
         </foreach>
     </update>
 </mapper>

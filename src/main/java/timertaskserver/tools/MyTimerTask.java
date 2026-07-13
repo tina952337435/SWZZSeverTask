@@ -126,6 +126,10 @@ public class MyTimerTask {
     @Autowired
     private DD_SOLUTIONData dd_solutionData;
 
+    @Autowired
+    @org.springframework.beans.factory.annotation.Qualifier("swzzqxsjserveSessionFactory")
+    private org.apache.ibatis.session.SqlSessionFactory swzzqxsjSqlSessionFactory;
+
     @Value("${file.path.templatefilepath}")
     private String filePathName;
     @Value("${http.urlPath.imgUrl}")
@@ -1170,9 +1174,17 @@ public class MyTimerTask {
 
                     writeLogTxtStr("方法FQWater(开始执行转换nc文件命令)" + nc, "FQWater" + formattedDateLog + ".txt");
                     Process exec = runtime.exec(wgrib2Path + " " + grb + " -netcdf " + nc);
+                    int exitCode = exec.waitFor();
                     builder.append("wgrib2 ").append(grb).append(" -netcdf ").append(nc).append("\n");
-
-                    writeLogTxtStr("方法FQWater(grb转nc文件成功)" + nc, "FQWater" + formattedDateLog + ".txt");
+                    if (exitCode != 0) {
+                        // wgrib2转换失败，删除损坏的GRB2和NC，下次重新下载
+                        writeLogTxtStr("方法FQWater(wgrib2转换失败 exitCode=" + exitCode + "，删除损坏文件)" + grb,
+                                "FQWater" + formattedDateLog + ".txt");
+                        f.delete();
+                        new File(nc).delete();
+                    } else {
+                        writeLogTxtStr("方法FQWater(grb转nc文件成功)" + nc, "FQWater" + formattedDateLog + ".txt");
+                    }
                 }
             }
         } catch (Exception e) {
@@ -1222,11 +1234,6 @@ public class MyTimerTask {
                 writeLogTxtStr("方法FQWater(转换时间报错" + TM + ")", "FQWater" + formattedDateLog + ".txt");
                 e.printStackTrace();
             }
-            List<String> typeList = Arrays.asList("48");
-            List<Tz_ncfilePojo> tzNcfileList = ncfileData.selectList(null, null, TM, TM, typeList, null, null);
-            if (tzNcfileList.size() > 0) {// 已经存库了
-                continue;
-            }
             if (date.getTime() < millis) {
                 continue;
             }
@@ -1236,75 +1243,69 @@ public class MyTimerTask {
             if (!FPDR.equals("048")) {
                 continue;
             }
+            // 检查是否已入库：同名文件跳过，同TM不同文件=预报更新（更新ncfile，后续upsert流域数据）
+            boolean isUpdate = false;
+            List<String> typeList = Arrays.asList("48");
+            List<Tz_ncfilePojo> tzNcfileList = ncfileData.selectList(null, null, TM, TM, typeList, null, null);
+            if (tzNcfileList.size() > 0) {
+                String existNcFile = tzNcfileList.get(0).getNCFILE();
+                if (existNcFile != null && existNcFile.equals(name)) {
+                    continue; // 同一个文件已处理过
+                }
+                // 同一起报时间的新文件 → 预报更新
+                writeLogTxtStr("方法FQWater(检测到更新预报，旧文件:" + existNcFile + " → 新文件:" + name + ")",
+                        "FQWater" + formattedDateLog + ".txt");
+                tzNcfileList.get(0).setNCFILE(name);
+                ncfileData.updateOne(tzNcfileList.get(0));
+                isUpdate = true;
+            }
             String Hour = name.substring(name.lastIndexOf("_") + 4, name.lastIndexOf("_") + 6);
             System.out.println("==========开始解析:" + name + "=================");
             sbd.append("==========开始解析:").append(name).append("=================\n");
             writeLogTxtStr("方法FQWater(==========开始解析：" + name + ")", "FQWater" + formattedDateLog + ".txt");
             NetcdfFile openFile = NetcdfDataset.openDataset(filePathNC + File.separatorChar + name);
             List<Variable> variables = openFile.getVariables();
-            List<Double> dataList = new ArrayList<>();
+            double[] dataArray = null;
             List<Double> latList = new ArrayList<>();
             List<Double> lonList = new ArrayList<>();
             List<Double> timeList = new ArrayList<>();
             for (Variable variable : variables) {
-                // System.out.println(variable.getFullName() + " : " + variable.read());
                 String fullName = variable.getFullName();
                 System.out.println("==========fullName:" + fullName + "=================");
-                // sbd.append(fullName).append(" : ").append(variable.read()).append("\n");
 
                 Array data = variable.read();
-                String dataStr = data.toString();
-                // System.out.println("dataStr："+dataStr);
                 switch (fullName) {
                     case "latitude":
-                        // Object lat = variable.read();
-                        // latList = Arrays.stream(lat.toString().split("
-                        // ")).map(Double::parseDouble).collect(Collectors.toList());
-                        latList = readArrayAsListStringTokenizer(dataStr, fullName);
+                        latList = readArrayAsListStringTokenizer(data.toString(), fullName);
                         break;
                     case "longitude":
-                        // Object lon = variable.read();
-                        // lonList = Arrays.stream(lon.toString().split("
-                        // ")).map(Double::parseDouble).collect(Collectors.toList());
-                        lonList = readArrayAsListStringTokenizer(dataStr, fullName);
+                        lonList = readArrayAsListStringTokenizer(data.toString(), fullName);
                         break;
                     case "time":
-                        // Object time = variable.read();
-                        // timeList = Arrays.stream(time.toString().split("
-                        // ")).map(Double::parseDouble).collect(Collectors.toList());
-                        timeList = readArrayAsListStringTokenizer(dataStr, fullName);
+                        timeList = readArrayAsListStringTokenizer(data.toString(), fullName);
                         break;
                     default:
-                        // Array data = variable.read();
-                        // dataList = Arrays.stream(data.toString().split("
-                        // ")).map(Double::parseDouble).collect(Collectors.toList());
-                        dataList = readArrayAsListStringTokenizer(dataStr, fullName);
+                        dataArray = toDoubleArray(data);
                         break;
                 }
             }
-            System.out.println(latList.size() + ";" + lonList.size() + ";" + timeList.size() + ";" + dataList.size());
+            int latSize = latList.size();
+            int lonSize = lonList.size();
+            System.out.println(
+                    latSize + ";" + lonSize + ";" + timeList.size() + ";" + (dataArray != null ? dataArray.length : 0));
             for (int i = 0; i < timeList.size(); i++) {
-                // Double time = timeList.get(i);
-                // long longValue = time.longValue();
-                // String formatTime = dateFormat.format(new Date(longValue));
-                // 将Double类型的时间戳转换为long类型
                 long s = timeList.get(i).longValue();
-                // 将时间戳转换为Date对象
-                // 获取1970年1月1日00:00:00 UTC的时间
                 Instant startTime = Instant.ofEpochSecond(s);
-                // 将时间转换为本地时区
                 LocalDateTime time = LocalDateTime.ofInstant(startTime, ZoneId.systemDefault());
-                // 时区相差8小时，又是结束时间，所以需要减去8个小时
                 time = time.minusHours(8);
-                // 格式化时间
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 String FTime = time.format(formatter);
 
                 Map<String, Object> map = new HashMap<>();
                 map.put("RLSTM", TM);
                 map.put("FTM", FTime);
-                map.put("data", dataList.subList(i * latList.size() * lonList.size(),
-                        (i + 1) * latList.size() * lonList.size()));
+                map.put("dataArray", dataArray);
+                map.put("sliceOffset", i * latSize * lonSize);
                 map.put("hour", i);
                 map.put("FPDR", FPDR);
                 map.put("HOURS", Hour);
@@ -1318,8 +1319,10 @@ public class MyTimerTask {
             // out.close();
 
             writeLogTxtStr("方法FQWater(解析完成，开始入库)", "FQWater" + formattedDateLog + ".txt");
-            insertData(mapList, name, TM, Integer.parseInt(FPDR));
-            insertDataWater(mapList);
+            if (!isUpdate) {
+                insertData(mapList, name, TM, Integer.parseInt(FPDR));
+            }
+            insertDataWater(mapList, latList.size(), lonList.size());
         }
     }
 
@@ -1337,7 +1340,7 @@ public class MyTimerTask {
         // long ms = dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
         LocalDateTime dateTime = now.minusHours(12);
         Date dateTimedate = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
-        downGRB(filePath, FtpIP, FtpPort, "swzz", "zxt@18SH", dateTimedate);// 下载202.96.202.173 100.97.232.125
+        downGRB6(filePath, FtpIP, FtpPort, "swzz", "zxt@18SH", dateTimedate);// 下载202.96.202.173 100.97.232.125
         File file = new File(filePath);
         File[] files = file.listFiles();
         File fileNC = new File(filePathNC);
@@ -1353,10 +1356,16 @@ public class MyTimerTask {
                     Runtime runtime = Runtime.getRuntime();
                     String grb = filePath + "/" + fileName;
                     String nc = filePathNC + "/" + fileName.substring(0, fileName.indexOf(".")) + ".nc";
-                    // runtime.exec("chmod +x /home/wsupport/Downloads/wgrib2/grib2/wgrib2");
-                    // wgrib2 可执行文件路径 /home/wsupport/Downloads/wgrib2/grib2/wgrib2/wgrib2
                     Process exec = runtime.exec(wgrib2Path + " " + grb + " -netcdf " + nc);
+                    int exitCode = exec.waitFor();
                     builder.append("wgrib2 ").append(grb).append(" -netcdf ").append(nc).append("\n");
+                    if (exitCode != 0) {
+                        // wgrib2转换失败，删除损坏的GRB2和NC，下次重新下载
+                        writeLogTxtStr("方法FQ336HourWater(wgrib2转换失败 exitCode=" + exitCode + "，删除损坏文件)" + grb,
+                                "FQWater.txt");
+                        f.delete();
+                        new File(nc).delete();
+                    }
                 }
             }
         } catch (Exception e) {
@@ -1402,11 +1411,6 @@ public class MyTimerTask {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            List<String> typeList = Arrays.asList("336");
-            List<Tz_ncfilePojo> tzNcfileList = ncfileData.selectList(null, null, TM, TM, typeList, null, null);
-            if (tzNcfileList.size() > 0) {// 已经存库了
-                continue;
-            }
             if (date.getTime() < millis) {
                 continue;
             }
@@ -1415,74 +1419,68 @@ public class MyTimerTask {
             if (!FPDR.equals("336")) {
                 continue;
             }
+            // 检查是否已入库：同名文件跳过，同TM不同文件=预报更新（更新ncfile，后续upsert流域数据）
+            boolean isUpdate = false;
+            List<String> typeList = Arrays.asList("336");
+            List<Tz_ncfilePojo> tzNcfileList = ncfileData.selectList(null, null, TM, TM, typeList, null, null);
+            if (tzNcfileList.size() > 0) {
+                String existNcFile = tzNcfileList.get(0).getNCFILE();
+                if (existNcFile != null && existNcFile.equals(name)) {
+                    continue; // 同一个文件已处理过
+                }
+                // 同一起报时间的新文件 → 预报更新
+                writeLogTxtStr("方法FQ336HourWater(检测到更新预报，旧文件:" + existNcFile + " → 新文件:" + name + ")",
+                        "FQWater.txt");
+                tzNcfileList.get(0).setNCFILE(name);
+                ncfileData.updateOne(tzNcfileList.get(0));
+                isUpdate = true;
+            }
             String Hour = name.substring(name.lastIndexOf("_") + 4, name.lastIndexOf("_") + 6);
             System.out.println("==========336开始解析:" + name + "=================");
             sbd.append("==========336开始解析:").append(name).append("=================\n");
             NetcdfFile openFile = NetcdfDataset.openDataset(filePathNC + File.separatorChar + name);
             List<Variable> variables = openFile.getVariables();
-            List<Double> dataList = new ArrayList<>();
+            double[] dataArray = null;
             List<Double> latList = new ArrayList<>();
             List<Double> lonList = new ArrayList<>();
             List<Double> timeList = new ArrayList<>();
             for (Variable variable : variables) {
-                // System.out.println(variable.getFullName() + " : " + variable.read());
                 String fullName = variable.getFullName();
                 System.out.println("==========fullName:" + fullName + "=================");
-                // sbd.append(fullName).append(" : ").append(variable.read()).append("\n");
 
                 Array data = variable.read();
-                String dataStr = data.toString();
-                // System.out.println("dataStr："+dataStr);
                 switch (fullName) {
                     case "latitude":
-                        // Object lat = variable.read();
-                        // latList = Arrays.stream(lat.toString().split("
-                        // ")).map(Double::parseDouble).collect(Collectors.toList());
-                        latList = readArrayAsListStringTokenizer(dataStr, fullName);
+                        latList = readArrayAsListStringTokenizer(data.toString(), fullName);
                         break;
                     case "longitude":
-                        // Object lon = variable.read();
-                        // lonList = Arrays.stream(lon.toString().split("
-                        // ")).map(Double::parseDouble).collect(Collectors.toList());
-                        lonList = readArrayAsListStringTokenizer(dataStr, fullName);
+                        lonList = readArrayAsListStringTokenizer(data.toString(), fullName);
                         break;
                     case "time":
-                        // Object time = variable.read();
-                        // timeList = Arrays.stream(time.toString().split("
-                        // ")).map(Double::parseDouble).collect(Collectors.toList());
-                        timeList = readArrayAsListStringTokenizer(dataStr, fullName);
+                        timeList = readArrayAsListStringTokenizer(data.toString(), fullName);
                         break;
                     default:
-                        // Array data = variable.read();
-                        // dataList = Arrays.stream(data.toString().split("
-                        // ")).map(Double::parseDouble).collect(Collectors.toList());
-                        dataList = readArrayAsListStringTokenizer(dataStr, fullName);
+                        dataArray = toDoubleArray(data);
                         break;
                 }
             }
-            System.out.println(latList.size() + ";" + lonList.size() + ";" + timeList.size() + ";" + dataList.size());
+            int latSize = latList.size();
+            int lonSize = lonList.size();
+            System.out.println(
+                    latSize + ";" + lonSize + ";" + timeList.size() + ";" + (dataArray != null ? dataArray.length : 0));
             for (int i = 0; i < timeList.size(); i++) {
-                // Double time = timeList.get(i);
-                // long longValue = time.longValue();
-                // String formatTime = dateFormat.format(new Date(longValue));
-                // 将Double类型的时间戳转换为long类型
                 long s = timeList.get(i).longValue();
-                // 将时间戳转换为Date对象
-                // 获取1970年1月1日00:00:00 UTC的时间
                 Instant startTime = Instant.ofEpochSecond(s);
-                // 将时间转换为本地时区
                 LocalDateTime time = LocalDateTime.ofInstant(startTime, ZoneId.systemDefault());
-                // 时区相差8小时，又是结束时间，所以需要减去8个小时
                 time = time.minusHours(8);
-                // 格式化时间
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 String FTime = time.format(formatter);
 
                 Map<String, Object> map = new HashMap<>();
                 map.put("RLSTM", TM);
                 map.put("FTM", FTime);
-                map.put("data", dataList.subList(i * latList.size() * lonList.size(),
-                        (i + 1) * latList.size() * lonList.size()));
+                map.put("dataArray", dataArray);
+                map.put("sliceOffset", i * latSize * lonSize);
                 map.put("hour", i);
                 map.put("FPDR", FPDR);
                 map.put("HOURS", Hour);
@@ -1494,8 +1492,10 @@ public class MyTimerTask {
             // File("D:\\work\\UploadDoc\\log\\"+name.substring(0,name.indexOf("."))+"_log.txt"));
             // out.write(bytes);
             // out.close();
-            insertData(mapList, name, TM, Integer.parseInt(FPDR));
-            insertDataWater(mapList);
+            if (!isUpdate) {
+                insertData(mapList, name, TM, Integer.parseInt(FPDR));
+            }
+            insertDataWater(mapList, latList.size(), lonList.size());
         }
     }
 
@@ -1525,6 +1525,31 @@ public class MyTimerTask {
         System.out.println("dataListStream:::::::::::" + dataListStream.size());
         writeLogTxtStr(fullName + "的dataListStream:::::::::::" + dataListStream.size(), "FQWater.txt");
         return dataListStream;
+    }
+
+    /**
+     * 直接从UCAR Array读取为double[]，避免toString+StringTokenizer的巨大开销
+     */
+    private double[] toDoubleArray(Array data) {
+        Class<?> elementType = data.getElementType();
+        if (elementType == double.class) {
+            return (double[]) data.copyTo1DJavaArray();
+        } else if (elementType == float.class) {
+            float[] fa = (float[]) data.copyTo1DJavaArray();
+            double[] da = new double[fa.length];
+            for (int i = 0; i < fa.length; i++) {
+                da[i] = fa[i];
+            }
+            return da;
+        } else {
+            // fallback: 逐元素getDouble
+            long size = data.getSize();
+            double[] da = new double[(int) size];
+            for (int i = 0; i < size; i++) {
+                da[i] = data.getDouble(i);
+            }
+            return da;
+        }
     }
 
     public void FQ6HourWater() throws IOException {
@@ -1976,20 +2001,27 @@ public class MyTimerTask {
         return buffer.get() == 0;
     }
 
-    public void insertDataWater(List<Map<String, Object>> mapList) {
+    public void insertDataWater(List<Map<String, Object>> mapList, int latCount, int lonCount) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         List<String> typeList = Arrays.asList("48&336");
         List<Tz_watershedwgPojo> listGrid = tz_watershedwgData.selectList(null, null, null, null, typeList, null, null);
 
         List<Tz_watershedPojo> tzWatershedList = tzWatershedData.selectList(null, null, null, null, null, null, null);
-        List<Tz_watersheddataPojo> list = new ArrayList<>();
+        List<Tz_watersheddataPojo> insertList = new ArrayList<>();
+        List<Tz_watersheddataPojo> updateList = new ArrayList<>();
+        // 查询该起报时间下已有的流域数据（只查一次，所有时次共用）
+        String rlstm = mapList.get(0).get("RLSTM").toString();
+        String fpdrStr = mapList.get(0).get("FPDR").toString();
+        List<String> fpdrTypes = Collections.singletonList(String.valueOf(Integer.parseInt(fpdrStr)));
+        List<Tz_watersheddataPojo> allList = tzWatersheddataData.selectByTimeAndFPDR(
+                null, null, rlstm, rlstm, fpdrTypes);
+        writeLogTxtStr("insertDataWater: allList.size=" + allList.size() + " rlstm=" + rlstm + " fpdr=" + fpdrStr,
+                "FQWater.txt");
         for (Map<String, Object> map : mapList) {
             List<SDE_AREAPojo> sdeAreaList = new ArrayList<>(); // sdeAreaData.selectList(null, null, null);
-            // System.out.println(map);
-            List<Tz_watersheddataPojo> allList = tzWatersheddataData.selectList(null, null, map.get("RLSTM").toString(),
-                    map.get("RLSTM").toString(), null, null, null);
-            List<Double> data = (List<Double>) map.get("data");
+            double[] dataArray = (double[]) map.get("dataArray");
+            int sliceOffset = (int) map.get("sliceOffset");
             // for (SDE_AREAPojo sde : sdeAreaList){
             // Integer fid = sde.getFID();
             // double z1 = Math.abs((56 - (fid + 1) / 51) * 51);
@@ -2003,7 +2035,11 @@ public class MyTimerTask {
                 SDE_AREAPojo dto = new SDE_AREAPojo();
                 dto.setFID(fid);
                 dto.setAREANAME(listGrid.get(num).getNAME());
-                dto.setZVALUE(data.get(fid));
+                // FID方向是北→南(row=0→35°N)，NetCDF data方向是南→北(idx=0→26°N)，需要Y轴翻转
+                int row = fid / lonCount;
+                int col = fid % lonCount;
+                int realIdx = (latCount - 1 - row) * lonCount + col;
+                dto.setZVALUE(dataArray[sliceOffset + realIdx]);
                 sdeAreaList.add(dto);
             }
 
@@ -2058,24 +2094,47 @@ public class MyTimerTask {
                                                                                                                      // 10.0
                     obj.setTYPE("上海气象台");
                     // System.out.println("================="+map.get("FDRP")+"=================");
-                    if (!list.contains(obj) && !allList.contains(obj)) {
-                        list.add(obj);
+                    if (!insertList.contains(obj) && !updateList.contains(obj)) {
+                        if (allList.contains(obj)) {
+                            updateList.add(obj); // 已存在，更新DRP
+                        } else {
+                            insertList.add(obj); // 新记录，插入
+                        }
                     }
                 }
             }
         }
-        if (list.size() > 0) {
+        // 更新已存在的记录（MyBatis Batch模式，所有updateOne攒成一个JDBC batch，一次网络往返）
+        writeLogTxtStr("insertDataWater: updateList=" + updateList.size() + " insertList=" + insertList.size(),
+                "FQWater.txt");
+        if (updateList.size() > 0) {
+            org.apache.ibatis.session.SqlSession batchSession = swzzqxsjSqlSessionFactory
+                    .openSession(org.apache.ibatis.session.ExecutorType.BATCH);
+            try {
+                Tz_watersheddataData batchMapper = batchSession.getMapper(Tz_watersheddataData.class);
+                for (Tz_watersheddataPojo pojo : updateList) {
+                    batchMapper.updateOne(pojo);
+                }
+                batchSession.flushStatements();
+                batchSession.commit();
+            } finally {
+                batchSession.close();
+            }
+            writeLogTxtStr("insertDataWater: updateAll done, total=" + updateList.size(), "FQWater.txt");
+        }
+        // 插入新记录
+        if (insertList.size() > 0) {
             int count = 4000;
-            int num = list.size() / count;
-            if (list.size() % count != 0) {
+            int num = insertList.size() / count;
+            if (insertList.size() % count != 0) {
                 num += 1;
             }
             List<Tz_watersheddataPojo> subList = null;
             for (int i = 0; i < num; i++) {
                 if (i == num - 1) {
-                    subList = list.subList(i * count, list.size());
+                    subList = insertList.subList(i * count, insertList.size());
                 } else {
-                    subList = list.subList(i * count, (i + 1) * count);
+                    subList = insertList.subList(i * count, (i + 1) * count);
                 }
                 tzWatersheddataData.insertALL(subList);
             }
@@ -2322,7 +2381,6 @@ public class MyTimerTask {
             if (!f.exists()) {
                 f.mkdirs();
             }
-            OutputStream out = null;
             System.out.println("================开始下载grb文件=================");
             for (FTPFile ftpFile : ftpFiles) {
                 String fileName = ftpFile.getName();
@@ -2357,22 +2415,17 @@ public class MyTimerTask {
                         continue;
                     }
                 }
-                out = new FileOutputStream(file);
-                boolean retrieveFile = ftpClient.retrieveFile(fileName, out);
-                // if (fileName.contains("GRB2") && retrieveFile){
-                // Runtime runtime = Runtime.getRuntime();
-                // String grb = filePath + "/" + fileName;
-                // String nc = filePath + "/" + fileName.substring(0,fileName.indexOf(".")) +
-                // ".nc";
-                // runtime.exec("wgrib2 " + grb + " -netcdf " + nc);
-                // builder.append("wgrib2 ").append(grb).append(" -netcdf
-                // ").append(nc).append("\n");
-                // }
+                OutputStream fileOut = new FileOutputStream(file);
+                boolean retrieveFile = ftpClient.retrieveFile(fileName, fileOut);
+                fileOut.flush();
+                fileOut.close();
+                if (!retrieveFile) {
+                    // 下载失败，删除不完整的文件，下次重新下载
+                    System.out.println(fileName + " 下载失败，删除不完整文件");
+                    file.delete();
+                }
             }
             System.out.println("================下载grb文件结束，共" + names.size() + "个文件=================");
-            if (null != out) {
-                out.close();
-            }
             MyFtpClient.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -3710,6 +3763,26 @@ public class MyTimerTask {
             writeLogTxtStr("【应急响应】同步，result结果为*****" + result, "SynchronizeDataYJXY" + formattedDateLog + ".txt");
         } catch (Exception e) {
             writeLogTxtStr("【应急响应】同步报错", "SynchronizeDataYJXY" + formattedDateLog + ".txt");
+        }
+    }
+
+    public void syncRecentPptnQixiang() throws IOException {
+        DateTimeFormatter formatterYMDHM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
+        LocalDateTime currentDateLog = LocalDateTime.now();
+        String formattedDateLog = currentDateLog.format(formatterYMDHM);
+        try {
+            writeLogTxtStr("【市气象局雨量补录】数据开始同步：", "syncRecentPptnQixiang" + formattedDateLog + ".txt");
+            String token = "768ADC6A9E72BFEE4891F1F98650FEEE";
+            String parmasMap = "{}";
+            HashMap<String, Object> header = new HashMap<>();
+            header.put("Content-Type", "application/json;charset=UTF-8");
+            header.put("Authorization", token);
+            String apiurl = ServerIP + "GetWaterViewNew/syncRecentPptnQixiang";
+            writeLogTxtStr("请求地址：" + apiurl + "，参数：" + parmasMap, "syncRecentPptnQixiang" + formattedDateLog + ".txt");
+            String result = apihelper.apipost(apiurl, parmasMap, header);
+            writeLogTxtStr("【市气象局雨量补录】同步，result结果为*****" + result, "syncRecentPptnQixiang" + formattedDateLog + ".txt");
+        } catch (Exception e) {
+            writeLogTxtStr("【市气象局雨量补录】同步报错", "syncRecentPptnQixiang" + formattedDateLog + ".txt");
         }
     }
 
