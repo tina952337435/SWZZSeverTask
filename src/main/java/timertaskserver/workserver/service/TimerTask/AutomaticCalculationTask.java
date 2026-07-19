@@ -5,7 +5,8 @@ import timertaskserver.workserver.service.ApplicationContextUtil;
 
 import java.io.IOException;
 
-public class AutomaticCalculationTask implements Runnable{
+public class AutomaticCalculationTask implements Runnable {
+
     @Override
     public void run() {
         try {

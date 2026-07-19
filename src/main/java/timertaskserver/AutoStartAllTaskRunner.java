@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import timertaskserver.tools.javalog;
 import timertaskserver.workserver.service.TaskConfigService;
 
+import java.lang.management.ManagementFactory;
+
 @Component
 public class AutoStartAllTaskRunner implements ApplicationRunner {
 
@@ -20,12 +22,15 @@ public class AutoStartAllTaskRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        String processInfo = ManagementFactory.getRuntimeMXBean().getName();
         System.out.println("========================================");
         System.out.println("===== 定时任务自动启动中，请稍候... =====");
+        System.out.println("===== 进程 PID@主机: " + processInfo + " =====");
         System.out.println("========================================");
 
         new javalog().writelog("========================================", filePathName,"AutoTaskLog");
         new javalog().writelog("===== 定时任务自动启动中，请稍候... =====", filePathName,"AutoTaskLog");
+        new javalog().writelog("===== 进程 PID@主机: " + processInfo + " =====", filePathName,"AutoTaskLog");
         new javalog().writelog("========================================", filePathName,"AutoTaskLog");
 
         try {

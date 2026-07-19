@@ -24,13 +24,21 @@ public class MyEnableScheduledService {
     public boolean startTimerTask(Runnable runTask,String cron){
         try {
             //String cron = "0 */5 * * * ?";
+            String taskKey = runTask.getClass().getName();
+            // 先取消已存在的旧任务，防止重复调度
+            ThreadPoolTaskSchedulerPackage existing = taskMap.get(taskKey);
+            if (existing != null && existing.getScheduledFuture() != null) {
+                existing.getScheduledFuture().cancel(true);
+                System.out.println("[MyEnableScheduledService] 取消旧任务(cron): " + taskKey);
+            }
+            Runnable wrappedTask = new MutexTaskWrapper(runTask);
             CronTrigger cronTrigger = new CronTrigger(cron);
-            ScheduledFuture<?> scheduledFuture = threadPoolTaskScheduler.schedule(runTask, cronTrigger);
+            ScheduledFuture<?> scheduledFuture = threadPoolTaskScheduler.schedule(wrappedTask, cronTrigger);
             ThreadPoolTaskSchedulerPackage taskSchedulerPackage = new ThreadPoolTaskSchedulerPackage();
             taskSchedulerPackage.setRunnableClass(runTask.getClass());
             taskSchedulerPackage.setScheduledFuture(scheduledFuture);
             taskSchedulerPackage.setCron(cron);
-            taskMap.put(runTask.getClass().getName(),taskSchedulerPackage);
+            taskMap.put(taskKey, taskSchedulerPackage);
             return true;
         }catch (Exception e){
             e.printStackTrace();
@@ -58,7 +66,8 @@ public class MyEnableScheduledService {
             }
             try {
                 Runnable runnable = taskSchedulerPackage.getRunnableClass().newInstance();
-                ScheduledFuture<?> schedule = threadPoolTaskScheduler.schedule(runnable, new CronTrigger(cron));
+                Runnable wrappedTask = new MutexTaskWrapper(runnable);
+                ScheduledFuture<?> schedule = threadPoolTaskScheduler.schedule(wrappedTask, new CronTrigger(cron));
                 taskSchedulerPackage.setScheduledFuture(schedule);
                 taskSchedulerPackage.setCron(cron);
                 taskMap.put(runnable.getClass().getName(),taskSchedulerPackage);
@@ -73,17 +82,25 @@ public class MyEnableScheduledService {
 
     public boolean startTimerTask(Runnable runTask, long intervalMinutes) {
             try {
+                String taskKey = runTask.getClass().getName();
+                // 先取消已存在的旧任务，防止重复调度
+                ThreadPoolTaskSchedulerPackage existing = taskMap.get(taskKey);
+                if (existing != null && existing.getScheduledFuture() != null) {
+                    existing.getScheduledFuture().cancel(true);
+                    System.out.println("[MyEnableScheduledService] 取消旧任务(interval): " + taskKey);
+                }
+                Runnable wrappedTask = new MutexTaskWrapper(runTask);
                 ThreadPoolTaskSchedulerPackage taskSchedulerPackage = new ThreadPoolTaskSchedulerPackage();
                 // 将分钟转换为毫秒
                 long intervalMillis = intervalMinutes * 60 * 1000;
                 ScheduledFuture<?> schedule = threadPoolTaskScheduler.scheduleAtFixedRate(
-                        runTask,
+                        wrappedTask,
                         Instant.now().plusMillis(0),  // 立即执行
                         Duration.ofMillis(intervalMillis)
                 );
                 taskSchedulerPackage.setScheduledFuture(schedule);
                 taskSchedulerPackage.setInterval(intervalMinutes);
-                taskMap.put(runTask.getClass().getName(), taskSchedulerPackage);
+                taskMap.put(taskKey, taskSchedulerPackage);
                 return true;
             } catch (Exception e){
                 e.printStackTrace();

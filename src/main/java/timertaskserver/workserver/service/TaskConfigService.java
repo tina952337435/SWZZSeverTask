@@ -41,15 +41,25 @@ public class TaskConfigService {
             Class<?> taskClass = Class.forName(config.getTaskClass());
             Object task = taskClass.newInstance();
 
+            // 用 MutexTaskWrapper 包装，统一给所有任务加互斥锁
+            Runnable wrappedTask = new MutexTaskWrapper((Runnable) task);
+
+            // 先取消已存在的旧任务，防止重复调度
+            ScheduledFuture<?> existing = runningTasks.get(config.getId());
+            if (existing != null && !existing.isCancelled()) {
+                existing.cancel(true);
+                System.out.println("[TaskConfigService] 取消旧任务: " + config.getId());
+            }
+
             ScheduledFuture<?> future;
             if (config.getCronExpr() != null && !config.getCronExpr().isEmpty()) {
                 // 使用 Cron 表达式
-                future = threadPoolTaskScheduler.schedule((Runnable) task, new CronTrigger(config.getCronExpr()));
+                future = threadPoolTaskScheduler.schedule(wrappedTask, new CronTrigger(config.getCronExpr()));
             } else {
                 // 使用间隔时间
                 long intervalMillis = config.getIntervalMinutes() * 60 * 1000L;
                 future = threadPoolTaskScheduler.scheduleAtFixedRate(
-                        (Runnable) task,
+                        wrappedTask,
                         Instant.now(),
                         Duration.ofMillis(intervalMillis)
                 );
