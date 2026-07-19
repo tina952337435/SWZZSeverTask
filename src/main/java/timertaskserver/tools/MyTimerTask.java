@@ -1243,7 +1243,7 @@ public class MyTimerTask {
             if (!FPDR.equals("048")) {
                 continue;
             }
-            // 检查是否已入库：同名文件跳过，同TM不同文件=预报更新（更新ncfile，后续upsert流域数据）
+            // 检查是否已入库：同名文件跳过，同TM+同集合成员不同文件=预报更新
             boolean isUpdate = false;
             List<String> typeList = Arrays.asList("48");
             List<Tz_ncfilePojo> tzNcfileList = ncfileData.selectList(null, null, TM, TM, typeList, null, null);
@@ -1252,7 +1252,13 @@ public class MyTimerTask {
                 if (existNcFile != null && existNcFile.equals(name)) {
                     continue; // 同一个文件已处理过
                 }
-                // 同一起报时间的新文件 → 预报更新
+                // 提取新旧文件的集合成员（ER01/ER03），不同成员不互相覆盖
+                String newEns = name.contains("ER01") ? "ER01" : (name.contains("ER03") ? "ER03" : "");
+                String oldEns = existNcFile.contains("ER01") ? "ER01" : (existNcFile.contains("ER03") ? "ER03" : "");
+                if (!newEns.isEmpty() && !newEns.equals(oldEns)) {
+                    continue; // 不同集合成员，保留已有数据不覆盖
+                }
+                // 同一起报时间+同集合成员的新文件 → 预报更新
                 writeLogTxtStr("方法FQWater(检测到更新预报，旧文件:" + existNcFile + " → 新文件:" + name + ")",
                         "FQWater" + formattedDateLog + ".txt");
                 tzNcfileList.get(0).setNCFILE(name);
@@ -1419,7 +1425,7 @@ public class MyTimerTask {
             if (!FPDR.equals("336")) {
                 continue;
             }
-            // 检查是否已入库：同名文件跳过，同TM不同文件=预报更新（更新ncfile，后续upsert流域数据）
+            // 检查是否已入库：同名文件跳过，同TM+同集合成员不同文件=预报更新
             boolean isUpdate = false;
             List<String> typeList = Arrays.asList("336");
             List<Tz_ncfilePojo> tzNcfileList = ncfileData.selectList(null, null, TM, TM, typeList, null, null);
@@ -1428,7 +1434,13 @@ public class MyTimerTask {
                 if (existNcFile != null && existNcFile.equals(name)) {
                     continue; // 同一个文件已处理过
                 }
-                // 同一起报时间的新文件 → 预报更新
+                // 提取新旧文件的集合成员（ER01/ER03），不同成员不互相覆盖
+                String newEns = name.contains("ER01") ? "ER01" : (name.contains("ER03") ? "ER03" : "");
+                String oldEns = existNcFile.contains("ER01") ? "ER01" : (existNcFile.contains("ER03") ? "ER03" : "");
+                if (!newEns.isEmpty() && !newEns.equals(oldEns)) {
+                    continue; // 不同集合成员，保留已有数据不覆盖
+                }
+                // 同一起报时间+同集合成员的新文件 → 预报更新
                 writeLogTxtStr("方法FQ336HourWater(检测到更新预报，旧文件:" + existNcFile + " → 新文件:" + name + ")",
                         "FQWater.txt");
                 tzNcfileList.get(0).setNCFILE(name);
