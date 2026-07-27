@@ -68,8 +68,8 @@ public class MyTimerTaskController {
                 intervalMinutes=3;
             }
             else if (className.equals("AutomaticFangjiangOverTask")) {
-                defaultCron = "0 0/5 * * * ?";//每 n 分钟 执行一次
-                intervalMinutes=5;
+                defaultCron = "0 0/10 * * * ?";//每 n 分钟 执行一次
+                intervalMinutes=10;
             }
             else   if(className.equals("SynchronizeQXYLDataTask") ){//气象雨量
                 defaultCron = "0 0/3* * * ?";//每 n 分钟 执行一次

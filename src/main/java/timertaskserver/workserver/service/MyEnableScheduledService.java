@@ -8,103 +8,89 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
 import java.util.concurrent.ScheduledFuture;
-
-import  java.util.concurrent.TimeUnit;
 
 @Component
 public class MyEnableScheduledService {
+
     @Autowired
     @Qualifier("MyThreadPoolTaskScheduler")
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
-    private Map<String,ThreadPoolTaskSchedulerPackage> taskMap = new HashMap<>();
-
-    public boolean startTimerTask(Runnable runTask,String cron){
+    public boolean startTimerTask(Runnable runTask, String cron) {
+        String taskKey = runTask.getClass().getName();
         try {
-            //String cron = "0 */5 * * * ?";
-            String taskKey = runTask.getClass().getName();
-            // 先取消已存在的旧任务，防止重复调度
-            ThreadPoolTaskSchedulerPackage existing = taskMap.get(taskKey);
-            if (existing != null && existing.getScheduledFuture() != null) {
-                existing.getScheduledFuture().cancel(true);
-                System.out.println("[MyEnableScheduledService] 取消旧任务(cron): " + taskKey);
-            }
+            // 1. 先取消旧任务
+            TaskRegistry.unregister(taskKey);
+
+            // 2. 包装后再调度
             Runnable wrappedTask = new MutexTaskWrapper(runTask);
             CronTrigger cronTrigger = new CronTrigger(cron);
-            ScheduledFuture<?> scheduledFuture = threadPoolTaskScheduler.schedule(wrappedTask, cronTrigger);
-            ThreadPoolTaskSchedulerPackage taskSchedulerPackage = new ThreadPoolTaskSchedulerPackage();
-            taskSchedulerPackage.setRunnableClass(runTask.getClass());
-            taskSchedulerPackage.setScheduledFuture(scheduledFuture);
-            taskSchedulerPackage.setCron(cron);
-            taskMap.put(taskKey, taskSchedulerPackage);
+            ScheduledFuture<?> future = threadPoolTaskScheduler.schedule(wrappedTask, cronTrigger);
+
+            // 3. 注册新任务
+            TaskRegistry.register(taskKey, future);
+            System.out.println("[MyEnableScheduledService] 启动任务(cron): " + taskKey);
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
+            System.err.println("[MyEnableScheduledService] 启动任务失败(cron): " + taskKey + " - " + e.getMessage());
             e.printStackTrace();
         }
         return false;
     }
 
-    public boolean showDownTimerTask(String className){
-        if(taskMap.containsKey(className)){
-            ThreadPoolTaskSchedulerPackage taskSchedulerPackage = taskMap.get(className);
-            ScheduledFuture<?> scheduledFuture = taskSchedulerPackage.getScheduledFuture();
-            if(scheduledFuture != null){
-                return scheduledFuture.cancel(true);
-            }
+    public boolean showDownTimerTask(String className) {
+        boolean result = TaskRegistry.unregister(className);
+        if (result) {
+            System.out.println("[MyEnableScheduledService] 停止任务: " + className);
+        }
+        return result;
+    }
+
+    public boolean restartTimerTask(String className, String cron) {
+        try {
+            // 先取消旧任务
+            TaskRegistry.unregister(className);
+
+            // 通过类名反射创建新实例
+            Class<?> taskClass = Class.forName(className);
+            Runnable runnable = (Runnable) taskClass.newInstance();
+            Runnable wrappedTask = new MutexTaskWrapper(runnable);
+
+            ScheduledFuture<?> future = threadPoolTaskScheduler.schedule(wrappedTask, new CronTrigger(cron));
+            TaskRegistry.register(className, future);
+            System.out.println("[MyEnableScheduledService] 重启任务: " + className);
+            return true;
+        } catch (Exception e) {
+            System.err.println("[MyEnableScheduledService] 重启任务失败: " + className + " - " + e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }
-
-    public boolean restartTimerTask(String className,String cron){
-        if(taskMap.containsKey(className)){
-            ThreadPoolTaskSchedulerPackage taskSchedulerPackage = taskMap.get(className);
-            ScheduledFuture<?> scheduledFuture = taskSchedulerPackage.getScheduledFuture();
-            if(scheduledFuture != null){
-                scheduledFuture.cancel(true);
-            }
-            try {
-                Runnable runnable = taskSchedulerPackage.getRunnableClass().newInstance();
-                Runnable wrappedTask = new MutexTaskWrapper(runnable);
-                ScheduledFuture<?> schedule = threadPoolTaskScheduler.schedule(wrappedTask, new CronTrigger(cron));
-                taskSchedulerPackage.setScheduledFuture(schedule);
-                taskSchedulerPackage.setCron(cron);
-                taskMap.put(runnable.getClass().getName(),taskSchedulerPackage);
-                return true;
-            } catch (InstantiationException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
-    }
-
 
     public boolean startTimerTask(Runnable runTask, long intervalMinutes) {
-            try {
-                String taskKey = runTask.getClass().getName();
-                // 先取消已存在的旧任务，防止重复调度
-                ThreadPoolTaskSchedulerPackage existing = taskMap.get(taskKey);
-                if (existing != null && existing.getScheduledFuture() != null) {
-                    existing.getScheduledFuture().cancel(true);
-                    System.out.println("[MyEnableScheduledService] 取消旧任务(interval): " + taskKey);
-                }
-                Runnable wrappedTask = new MutexTaskWrapper(runTask);
-                ThreadPoolTaskSchedulerPackage taskSchedulerPackage = new ThreadPoolTaskSchedulerPackage();
-                // 将分钟转换为毫秒
-                long intervalMillis = intervalMinutes * 60 * 1000;
-                ScheduledFuture<?> schedule = threadPoolTaskScheduler.scheduleAtFixedRate(
-                        wrappedTask,
-                        Instant.now().plusMillis(0),  // 立即执行
-                        Duration.ofMillis(intervalMillis)
-                );
-                taskSchedulerPackage.setScheduledFuture(schedule);
-                taskSchedulerPackage.setInterval(intervalMinutes);
-                taskMap.put(taskKey, taskSchedulerPackage);
-                return true;
-            } catch (Exception e){
-                e.printStackTrace();
-            }
+        String taskKey = runTask.getClass().getName();
+        try {
+            // 1. 先取消旧任务，避免新旧同时运行
+            TaskRegistry.unregister(taskKey);
+
+            // 2. 包装后再调度
+            Runnable wrappedTask = new MutexTaskWrapper(runTask);
+            long intervalMillis = intervalMinutes * 60 * 1000;
+            ScheduledFuture<?> future = threadPoolTaskScheduler.scheduleAtFixedRate(
+                    wrappedTask,
+                    Instant.now().plusMillis(2000),  // 延迟2秒启动，给 cancel 旧任务留出时间
+                    Duration.ofMillis(intervalMillis)
+            );
+
+            // 3. 注册新任务
+            TaskRegistry.register(taskKey, future);
+            System.out.println("[MyEnableScheduledService] 启动任务(interval): " + taskKey + " 间隔=" + intervalMinutes + "min");
+            return true;
+        } catch (Exception e) {
+            System.err.println("[MyEnableScheduledService] 启动任务失败(interval): " + taskKey + " - " + e.getMessage());
+            e.printStackTrace();
+        }
         return false;
     }
 }

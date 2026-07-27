@@ -23,6 +23,11 @@ public class MutexTaskWrapper implements Runnable {
 
     @Override
     public void run() {
+        // 如果当前线程已被中断（被 Future.cancel(true) 取消），直接退出
+        if (Thread.currentThread().isInterrupted()) {
+            System.out.println(LocalDateTime.now() + " [" + taskKey + "] 任务已被取消，跳过执行");
+            return;
+        }
         AtomicBoolean lock = LOCKS.computeIfAbsent(taskKey, k -> new AtomicBoolean(false));
         if (!lock.compareAndSet(false, true)) {
             System.out.println(LocalDateTime.now() + " [" + taskKey + "] 上一轮任务仍在执行，跳过本次");

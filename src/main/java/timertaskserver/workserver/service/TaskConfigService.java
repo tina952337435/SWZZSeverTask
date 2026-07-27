@@ -23,12 +23,6 @@ public class TaskConfigService {
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
     /**
-     * 任务状态缓存：className -> ScheduledFuture
-     * 用于管理任务的启动/停止
-     */
-    private Map<String, ScheduledFuture<?>> runningTasks = new HashMap<>();
-
-    /**
      * 根据配置启动单个任务
      */
     public boolean startTask(SwzzTaskConfigPojo config) {
@@ -41,36 +35,31 @@ public class TaskConfigService {
             Class<?> taskClass = Class.forName(config.getTaskClass());
             Object task = taskClass.newInstance();
 
-            // 用 MutexTaskWrapper 包装，统一给所有任务加互斥锁
-            Runnable wrappedTask = new MutexTaskWrapper((Runnable) task);
+            // 1. 先取消旧任务，避免新旧同时运行
+            TaskRegistry.unregister(config.getTaskClass());
 
-            // 先取消已存在的旧任务，防止重复调度
-            ScheduledFuture<?> existing = runningTasks.get(config.getId());
-            if (existing != null && !existing.isCancelled()) {
-                existing.cancel(true);
-                System.out.println("[TaskConfigService] 取消旧任务: " + config.getId());
-            }
+            // 2. 用 MutexTaskWrapper 包装，统一给所有任务加互斥锁
+            Runnable wrappedTask = new MutexTaskWrapper((Runnable) task);
 
             ScheduledFuture<?> future;
             if (config.getCronExpr() != null && !config.getCronExpr().isEmpty()) {
-                // 使用 Cron 表达式
                 future = threadPoolTaskScheduler.schedule(wrappedTask, new CronTrigger(config.getCronExpr()));
             } else {
-                // 使用间隔时间
                 long intervalMillis = config.getIntervalMinutes() * 60 * 1000L;
                 future = threadPoolTaskScheduler.scheduleAtFixedRate(
                         wrappedTask,
-                        Instant.now(),
+                        Instant.now().plusMillis(2000),  // 延迟2秒启动，给 cancel 旧任务留出时间
                         Duration.ofMillis(intervalMillis)
                 );
             }
 
-            runningTasks.put(config.getId(), future);
-            System.out.println("[TaskConfigService] 启动任务: " + config.getId() + " (" + config.getTaskName() + ")");
+            // 3. 注册新任务
+            TaskRegistry.register(config.getTaskClass(), future);
+            System.out.println("[TaskConfigService] 启动任务: " + config.getTaskClass() + " (" + config.getTaskName() + ")");
             return true;
 
         } catch (Exception e) {
-            System.err.println("[TaskConfigService] 启动任务失败: " + config.getId() + " - " + e.getMessage());
+            System.err.println("[TaskConfigService] 启动任务失败: " + config.getTaskClass() + " - " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -80,16 +69,16 @@ public class TaskConfigService {
      * 停止单个任务
      */
     public boolean stopTask(String taskId) {
-        ScheduledFuture<?> future = runningTasks.get(taskId);
-        if (future != null) {
-            boolean cancel = future.cancel(true);
-            if (cancel) {
-                runningTasks.remove(taskId);
-                System.out.println("[TaskConfigService] 停止任务: " + taskId);
-            }
-            return cancel;
+        // 用 DB ID 查出全类名，以匹配 TaskRegistry 的 key
+        SwzzTaskConfigPojo config = taskConfigData.selectById(taskId);
+        if (config == null) {
+            return false;
         }
-        return false;
+        boolean result = TaskRegistry.unregister(config.getTaskClass());
+        if (result) {
+            System.out.println("[TaskConfigService] 停止任务: " + taskId);
+        }
+        return result;
     }
 
     /**
@@ -164,14 +153,17 @@ public class TaskConfigService {
      * 检查任务是否正在运行
      */
     public boolean isTaskRunning(String taskId) {
-        ScheduledFuture<?> future = runningTasks.get(taskId);
-        return future != null && !future.isCancelled() && !future.isDone();
+        SwzzTaskConfigPojo config = taskConfigData.selectById(taskId);
+        if (config == null) {
+            return false;
+        }
+        return TaskRegistry.isRunning(config.getTaskClass());
     }
 
     /**
      * 获取正在运行的任务数量
      */
     public int getRunningTaskCount() {
-        return runningTasks.size();
+        return TaskRegistry.size();
     }
 }
