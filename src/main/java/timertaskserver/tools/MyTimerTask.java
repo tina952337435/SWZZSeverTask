@@ -24,6 +24,10 @@ import timertaskserver.workserver.data.swzzmode.DD_AUTOMATICData;
 import timertaskserver.workserver.data.swzzmode.DD_SOLUTIONData;
 import timertaskserver.workserver.data.swzzmode.SDE_AREA6HOURData;
 import timertaskserver.workserver.data.swzzmode.SDE_AREAData;
+import timertaskserver.workserver.data.swzzmode.StRnflRlistData;
+import timertaskserver.workserver.data.swzzmode.StRnflRmodeData;
+import timertaskserver.workserver.pojo.swzzmode.StRnflRlistPojo;
+import timertaskserver.workserver.pojo.swzzmode.StRnflRmodePojo;
 import timertaskserver.workserver.data.swzzqxsj.*;
 import timertaskserver.workserver.data.swzzwater.*;
 import timertaskserver.workserver.data.zjtyphoon.ZJ_TFData;
@@ -127,8 +131,18 @@ public class MyTimerTask {
     private DD_SOLUTIONData dd_solutionData;
 
     @Autowired
+    private StRnflRlistData stRnflRlistData;
+
+    @Autowired
+    private StRnflRmodeData stRnflRmodeData;
+
+    @Autowired
     @org.springframework.beans.factory.annotation.Qualifier("swzzqxsjserveSessionFactory")
     private org.apache.ibatis.session.SqlSessionFactory swzzqxsjSqlSessionFactory;
+
+    @Autowired
+    @org.springframework.beans.factory.annotation.Qualifier("swzzmodeserveSessionFactory")
+    private org.apache.ibatis.session.SqlSessionFactory swzzmodeSqlSessionFactory;
 
     @Value("${file.path.templatefilepath}")
     private String filePathName;
@@ -158,6 +172,24 @@ public class MyTimerTask {
     @Value("${http.urlPath.FtpPort}")
     public Integer FtpPort;
 
+    @Value("${http.urlPath.NewFtpIP}")
+    public String NewFtpIP;
+
+    @Value("${http.urlPath.NewFtpPort}")
+    public Integer NewFtpPort;
+
+    @Value("${http.urlPath.NewFtpUser}")
+    public String NewFtpUser;
+
+    @Value("${http.urlPath.NewFtpPass}")
+    public String NewFtpPass;
+
+    @Value("${http.urlPath.NewFtpDir48}")
+    public String NewFtpDir48;
+
+    @Value("${http.urlPath.NewFtpDir336}")
+    public String NewFtpDir336;
+
     @Value("${http.urlPath.wgrib2Path}")
     public String wgrib2Path;
 
@@ -166,6 +198,9 @@ public class MyTimerTask {
 
     @Value("${http.urlPath.ServerIP47}")
     private String ServerIP47;
+
+    @Value("${http.urlPath.waterlogging_api}")
+    public String waterlogging_api;
 
     public static String getHtmlResourceByUrl(String url, String encoding) {
         StringBuffer buffer = new StringBuffer();
@@ -1147,12 +1182,12 @@ public class MyTimerTask {
         // LocalDateTime dateTime =
         // LocalDateTime.of(now.getYear(),now.getMonth(),1,0,0,0).toLocalDate().atStartOfDay();
         // long ms = dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
-        LocalDateTime dateTime = now.minusHours(12);
+        LocalDateTime dateTime = now.minusHours(168); // 首次同步放宽到7天，稳定后改回12
         Date dateTimedate = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
         writeLogTxtStr("方法FQWater(开始下载ftp文件)", "FQWater" + formattedDateLog + ".txt");
         // downGRB(filePath,FtpIP, FtpPort, "swzz",
         // "zxt@18SH",dateTimedate);//下载202.96.202.173 100.97.232.125
-        downGRB6(filePath, FtpIP, FtpPort, "swzz", "zxt@18SH", dateTimedate);// 下载202.96.202.173 100.97.232.125
+        downGRB6(filePath, NewFtpIP, NewFtpPort, NewFtpUser, NewFtpPass, NewFtpDir48, dateTimedate);// 新FTP 48h er01_csj
         File file = new File(filePath);
         File[] files = file.listFiles();
         File fileNC = new File(filePathNC);
@@ -1344,9 +1379,9 @@ public class MyTimerTask {
         // LocalDateTime dateTime =
         // LocalDateTime.of(now.getYear(),now.getMonth(),1,0,0,0).toLocalDate().atStartOfDay();
         // long ms = dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
-        LocalDateTime dateTime = now.minusHours(12);
+        LocalDateTime dateTime = now.minusHours(168); // 首次同步放宽到7天，稳定后改回12
         Date dateTimedate = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
-        downGRB6(filePath, FtpIP, FtpPort, "swzz", "zxt@18SH", dateTimedate);// 下载202.96.202.173 100.97.232.125
+        downGRB6(filePath, NewFtpIP, NewFtpPort, NewFtpUser, NewFtpPass, NewFtpDir336, dateTimedate);// 新FTP 336h er03_csj
         File file = new File(filePath);
         File[] files = file.listFiles();
         File fileNC = new File(filePathNC);
@@ -1922,7 +1957,7 @@ public class MyTimerTask {
         writeLogTxtStr("==========6小时的开始抓取时间为=================" + dateTime,
                 "FQ6HourWaterGong" + formattedDateLog + ".txt");
         long ms = dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
-        downGRB6(filePath, FtpIP, FtpPort, "swzz_6h", "zxt@18SH", dateTimedate);// 202.96.202.173
+        downGRB6(filePath, FtpIP, FtpPort, "swzz_6h", "zxt@18SH", "/", dateTimedate);// 202.96.202.173
         File file = new File(filePath);
         File[] files = file.listFiles();
         List<String> fileNameList = new ArrayList<>();
@@ -2030,7 +2065,14 @@ public class MyTimerTask {
                 null, null, rlstm, rlstm, fpdrTypes);
         writeLogTxtStr("insertDataWater: allList.size=" + allList.size() + " rlstm=" + rlstm + " fpdr=" + fpdrStr,
                 "FQWater.txt");
+        writeLogTxtStr("insertDataWater: listGrid.size=" + listGrid.size() + " tzWatershedList.size=" + tzWatershedList.size(),
+                "FQWater.txt");
+        if (listGrid.isEmpty() || tzWatershedList.isEmpty()) {
+            writeLogTxtStr("insertDataWater: ABORT listGrid或tzWatershedList为空，跳过入库", "FQWater.txt");
+            return;
+        }
         for (Map<String, Object> map : mapList) {
+            try {
             List<SDE_AREAPojo> sdeAreaList = new ArrayList<>(); // sdeAreaData.selectList(null, null, null);
             double[] dataArray = (double[]) map.get("dataArray");
             int sliceOffset = (int) map.get("sliceOffset");
@@ -2114,6 +2156,10 @@ public class MyTimerTask {
                         }
                     }
                 }
+            }
+            } catch (Exception e) {
+                writeLogTxtStr("insertDataWater: ERROR in time step: " + e.toString(), "FQWater.txt");
+                e.printStackTrace();
             }
         }
         // 更新已存在的记录（MyBatis Batch模式，所有updateOne攒成一个JDBC batch，一次网络往返）
@@ -2445,7 +2491,7 @@ public class MyTimerTask {
         }
         try {
             byte[] bytes = builder.toString().getBytes(StandardCharsets.UTF_8);
-            FileOutputStream out = new FileOutputStream(filePathName + "/logs/GrbFileList.txt");
+            FileOutputStream out = new FileOutputStream(filePathName + "/logs/GrbFileList.txt", true);
             out.write(bytes);
             out.flush();
             out.close();
@@ -2454,9 +2500,11 @@ public class MyTimerTask {
         }
     }
 
-    private void downGRB6(String filePath, String host, int port, String username, String pass, Date ms) {
+    private void downGRB6(String filePath, String host, int port, String username, String pass, String remoteDir, Date ms) {
         FTPClient ftpClient = null;
         StringBuilder builder = new StringBuilder();
+        SimpleDateFormat logSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        builder.append("=== [").append(logSdf.format(new Date())).append("] ").append(remoteDir).append(" ===\n");
         // 使用 try-with-resources 管理本地文件流，避免泄露
         // 注意：不能在循环外定义 out，必须每个文件独立管理
 
@@ -2497,8 +2545,8 @@ public class MyTimerTask {
             // 设置缓冲区大小，提升大文件传输稳定性
             ftpClient.setBufferSize(1024 * 1024);
 
-            ftpClient.changeWorkingDirectory("/");
-            builder.append("成功切换目录，开始列出文件...\n");
+            ftpClient.changeWorkingDirectory(remoteDir);
+            builder.append("成功切换目录 " + remoteDir + "，开始列出文件...\n");
 
             FTPFile[] ftpFiles = ftpClient.listFiles();
             if (ftpFiles == null || ftpFiles.length == 0) {
@@ -2856,26 +2904,38 @@ public class MyTimerTask {
     }
 
     public void TaiFengLJTask(String year) {
-        String url = typhoonUrl + "Api/TyphoonList/" + year;// "http://typhoon.slt.zj.gov.cn/Api/TyphoonList/" + year;
+        String url = typhoonUrl + "Api/TyphoonList/" + year;
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String logFileName = "台风同步" + LocalDateTime.now().format(dateFormatter) + ".txt";
+        writeLogTxtStr("========== 台风路径同步开始, 年份: " + year + " ==========", logFileName);
         List<String> param = null;
         List<String> paramValue = null;
-        downAndParseTFList(url, param, paramValue);
+        downAndParseTFList(url, param, paramValue, logFileName);
         List<ZJ_TFPojo> zjTfPojoList = parseTFList(url, param, paramValue);
+        writeLogTxtStr("台风列表获取完成, 共 " + zjTfPojoList.size() + " 个台风待同步路径点", logFileName);
+        int index = 0;
         for (ZJ_TFPojo zjTfPojo : zjTfPojoList) {
+            index++;
             String tfId = zjTfPojo.getZJ_TFBH();
-            String urlT = typhoonUrl + "Api/TyphoonInfo/" + tfId;// "http://typhoon.slt.zj.gov.cn/Api/TyphoonInfo/" +
-                                                                 // tfId;
+            writeLogTxtStr("[" + index + "/" + zjTfPojoList.size() + "] 开始同步台风路径点, 编号: "
+                    + tfId + ", 名称: " + zjTfPojo.getZJ_TFM(), logFileName);
+            String urlT = typhoonUrl + "Api/TyphoonInfo/" + tfId;
             List<String> paramT = null;
             List<String> paramValueT = null;
-            downAndParseTFPoint(urlT, paramT, paramValueT, tfId);
+            downAndParseTFPoint(urlT, paramT, paramValueT, tfId, logFileName);
         }
+        writeLogTxtStr("========== 台风路径同步结束, 年份: " + year + " ==========", logFileName);
     }
 
-    public void downAndParseTFList(String url, List<String> param, List<String> paramValue) {
+    public void downAndParseTFList(String url, List<String> param, List<String> paramValue, String logFileName) {
         List<ZJ_TFPojo> zjTfPojoList = new ArrayList<>();
+        int newCount = 0;
+        int updateCount = 0;
+        int skipCount = 0;
         try {
             String json = wbcHttp(url, param, paramValue);
             List<Map> mapList = JSON.parseArray(json, Map.class);
+            writeLogTxtStr("从API获取到 " + mapList.size() + " 个台风记录", logFileName);
             int tfNum = 0;
             Integer maxId = 0;
             for (Map map : mapList) {
@@ -2883,6 +2943,50 @@ public class MyTimerTask {
                     List<ZJ_TFPojo> tfList = zj_tfData.selectList(null, null, null, null, null,
                             Collections.singletonList(map.get("tfid").toString()), null, null);
                     if (tfList.size() > 0) {
+                        // 更新已存在台风的名称、活跃状态等可能变化的字段
+                        ZJ_TFPojo existingPojo = tfList.get(0);
+                        if (existingPojo.getZJ_BEDIT() == null || existingPojo.getZJ_BEDIT() == 0) {
+                            boolean needUpdate = false;
+                            String newName = map.get("name") != null ? map.get("name").toString() : "";
+                            String newEnName = map.get("enname") != null ? map.get("enname").toString() : "";
+                            Integer newIsCompleted = map.get("isactive") != null
+                                    ? Integer.valueOf(map.get("isactive").toString()) : null;
+                            String newStartTime = map.get("starttime") != null ? map.get("starttime").toString() : "";
+                            String newEndTime = map.get("endtime") != null ? map.get("endtime").toString() : "";
+
+                            if (!newName.equals(existingPojo.getZJ_TFM())) {
+                                writeLogTxtStr("台风 " + existingPojo.getZJ_TFBH() + " 名称变更: "
+                                        + existingPojo.getZJ_TFM() + " -> " + newName, logFileName);
+                                existingPojo.setZJ_TFM(newName);
+                                needUpdate = true;
+                            }
+                            if (!newEnName.equals(existingPojo.getZJ_TFME())) {
+                                writeLogTxtStr("台风 " + existingPojo.getZJ_TFBH() + " 英文名变更: "
+                                        + existingPojo.getZJ_TFME() + " -> " + newEnName, logFileName);
+                                existingPojo.setZJ_TFME(newEnName);
+                                needUpdate = true;
+                            }
+                            if (newIsCompleted != null && !newIsCompleted.equals(existingPojo.getZJ_ISCOMPLETED())) {
+                                writeLogTxtStr("台风 " + existingPojo.getZJ_TFBH() + " 活跃状态变更: "
+                                        + existingPojo.getZJ_ISCOMPLETED() + " -> " + newIsCompleted, logFileName);
+                                existingPojo.setZJ_ISCOMPLETED(newIsCompleted);
+                                needUpdate = true;
+                            }
+                            if (!newStartTime.equals(existingPojo.getZJ_TFDATE())) {
+                                existingPojo.setZJ_TFDATE(newStartTime);
+                                needUpdate = true;
+                            }
+                            if (!newEndTime.equals(existingPojo.getZJ_REMARK())) {
+                                existingPojo.setZJ_REMARK(newEndTime);
+                                needUpdate = true;
+                            }
+                            if (needUpdate) {
+                                zj_tfData.updateOne(existingPojo);
+                                updateCount++;
+                            }
+                        } else {
+                            skipCount++;
+                        }
                         continue;
                     }
                     ZJ_TFPojo pojo = new ZJ_TFPojo();
@@ -2906,8 +3010,12 @@ public class MyTimerTask {
             }
             if (zjTfPojoList.size() > 0) {
                 zj_tfData.insertALL(zjTfPojoList);
+                newCount = zjTfPojoList.size();
             }
+            writeLogTxtStr("台风列表同步完成, 新增: " + newCount + ", 更新: " + updateCount
+                    + ", 跳过(人工编辑): " + skipCount + ", 总计: " + mapList.size(), logFileName);
         } catch (IOException e) {
+            writeLogTxtStr("台风列表同步异常: " + e.getMessage(), logFileName);
             e.printStackTrace();
         }
     }
@@ -3084,7 +3192,8 @@ public class MyTimerTask {
         }
     }
 
-    public void downAndParseTFPoint(String url, List<String> param, List<String> paramValue, String tfId) {
+    public void downAndParseTFPoint(String url, List<String> param, List<String> paramValue,
+            String tfId, String logFileName) {
         try {
             List<ZJ_TFLSLJPojo> lsList = new ArrayList<>();
             List<ZJ_TFYBLJPojo> ybList = new ArrayList<>();
@@ -3122,8 +3231,6 @@ public class MyTimerTask {
                     }
                     if (maxId == null)
                         maxId = 0;
-                    lsNum += 1;
-                    lsObj.setZJ_ID(maxId + lsNum);
                     lsObj.setZJ_TFBH(tfId);
                     lsObj.setZJ_RQSJ(rqsj);
                     lsObj.setZJ_JD(Float.valueOf(jd));
@@ -3136,6 +3243,8 @@ public class MyTimerTask {
                     lsObj.setZJ_Radius10(radius10);
                     lsObj.setZJ_Radius12(radius12);
                     if (!(count > 0)) {
+                        lsNum += 1;
+                        lsObj.setZJ_ID(maxId + lsNum);
                         lsList.add(lsObj);
                     }
                     if (map1.containsKey("forecast")) {
@@ -3224,8 +3333,11 @@ public class MyTimerTask {
                 }
                 zj_tfybljData.insertALL(ybListT);
             }
+            writeLogTxtStr("台风 " + tfId + " 路径点同步完成, 新增历史路径: " + lsList.size()
+                    + " 条, 新增预报路径: " + ybList.size() + " 条", logFileName);
 
         } catch (Exception e) {
+            writeLogTxtStr("台风 " + tfId + " 路径点同步异常: " + e.getMessage(), logFileName);
             e.printStackTrace();
         }
     }
@@ -3797,6 +3909,311 @@ public class MyTimerTask {
             writeLogTxtStr("【市气象局雨量补录】同步报错", "syncRecentPptnQixiang" + formattedDateLog + ".txt");
         }
     }
+
+    // ==================== NWP面雨量预报同步 ====================
+
+    /**
+     * 同步NWP行政分区和水利片区面雨量预报数据
+     * 6h(productId=12): 每5分钟可能有新起报时间，起报时间不同则插入新数据
+     * 48h(productId=11): 起报时间段内数据会更新，采用查询-分拆-更新(无间隙)策略
+     */
+    public void syncNwpPolygonPrecip() {
+        DateTimeFormatter formatterYMDHM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
+        LocalDateTime currentDateLog = LocalDateTime.now();
+        String formattedDateLog = currentDateLog.format(formatterYMDHM);
+        String logFile = "SyncNwpPolygonPrecip" + formattedDateLog + ".txt";
+
+        try {
+            // 先处理48h(productId=11)，再处理6h(productId=12)
+            processNwpProduct(11, 48, logFile);
+            processNwpProduct(12, 6, logFile);
+        } catch (Exception e) {
+            writeLogTxtStr("NWP面雨量同步异常: " + e.getMessage(), logFile);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 处理单个预报产品
+     * @param productId 11=48h, 12=6h
+     * @param fpdr      预报时效
+     * @param logFile   日志文件名
+     */
+    private void processNwpProduct(int productId, int fpdr, String logFile) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        // 1. 获取最新起报时间
+        String initialTime = getNwpProductLatestTime(productId, logFile);
+        if (initialTime == null || "".equals(initialTime)) {
+            writeLogTxtStr("productId=" + productId + " 获取起报时间为空，跳过", logFile);
+            return;
+        }
+        // 将ISO格式 "2026-07-31T08:00:00" 转换为 "2026-07-31 08:00:00"
+        String ybtm = initialTime.replace("T", " ");
+        writeLogTxtStr("productId=" + productId + " fpdr=" + fpdr + " 起报时间: " + ybtm, logFile);
+
+        // 2. 检查是否已同步（查RLIST表）
+        List<StRnflRlistPojo> existingRlist = stRnflRlistData.selectList(ybtm, (double) fpdr);
+        boolean alreadyExists = existingRlist != null && existingRlist.size() > 0;
+
+        // 6h: 已存在则跳过
+        if (fpdr == 6 && alreadyExists) {
+            writeLogTxtStr("productId=" + productId + " YBTM=" + ybtm + " 已同步，跳过", logFile);
+            return;
+        }
+
+        // 3. 拉取行政分区(type=1)和水利分片(type=2)数据
+        List<StRnflRmodePojo> allData = new ArrayList<>();
+        allData.addAll(fetchNwpPrecipData(productId, initialTime, 1, "行政分区", fpdr, logFile));
+        allData.addAll(fetchNwpPrecipData(productId, initialTime, 2, "水利分片", fpdr, logFile));
+
+        if (allData.isEmpty()) {
+            writeLogTxtStr("productId=" + productId + " 未获取到任何面雨量数据，跳过", logFile);
+            return;
+        }
+        writeLogTxtStr("productId=" + productId + " 获取到 " + allData.size() + " 条面雨量数据", logFile);
+
+        // 4. 入库RMODE数据
+        if (fpdr == 48 && alreadyExists) {
+            // 48h数据更新：查询已有数据 → 分拆insert/update → 先更新再插入（无间隙）
+            for (String type : Arrays.asList("行政分区", "水利分片")) {
+                List<StRnflRmodePojo> typeData = allData.stream()
+                        .filter(d -> type.equals(d.getTYPE()))
+                        .collect(Collectors.toList());
+                if (typeData.isEmpty()) continue;
+                upsertRmodeData(typeData, ybtm, type, fpdr, logFile);
+            }
+            // 更新RLIST的NCFILE
+            StRnflRlistPojo rlistPojo = existingRlist.get(0);
+            rlistPojo.setNCFILE("nwp/prePolygonForecast?productId=" + productId);
+            stRnflRlistData.deleteByTmAndFpdr(ybtm, (double) fpdr);
+        } else {
+            // 6h新数据 或 48h首次：直接批量插入
+            batchInsertRmode(allData, logFile);
+        }
+
+        // 5. 插入RLIST记录
+        insertNwpRlist(ybtm, fpdr, productId, logFile);
+
+        writeLogTxtStr("productId=" + productId + " fpdr=" + fpdr + " 同步完成，共 " + allData.size() + " 条", logFile);
+    }
+
+    /**
+     * 获取最新起报时间
+     */
+    private String getNwpProductLatestTime(int productId, String logFile) {
+        try {
+            String url = waterlogging_api + "nwp/productLatestTime?productId=" + productId;
+            writeLogTxtStr("请求起报时间: " + url, logFile);
+            String json = PostHttp(url, null, null);
+            writeLogTxtStr("productLatestTime返回: " + json, logFile);
+            if (json != null) {
+                Map map = JSON.parseObject(json, Map.class);
+                if (map.containsKey("code") && (int) map.get("code") == 200) {
+                    return map.get("data").toString();
+                }
+            }
+        } catch (Exception e) {
+            writeLogTxtStr("获取起报时间异常 productId=" + productId + ": " + e.getMessage(), logFile);
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 拉取面雨量预报数据并解析
+     * @param productId    11=48h, 12=6h
+     * @param initialTime  起报时间 (ISO格式: "2026-07-31T08:00:00")
+     * @param type         1=行政分区, 2=水利分片
+     * @param typeName     类型中文名
+     * @param logFile      日志文件名
+     * @return 解析后的RMODE数据列表
+     */
+    private List<StRnflRmodePojo> fetchNwpPrecipData(int productId, String initialTime, int type,
+                                                      String typeName, int fpdr, String logFile) {
+        List<StRnflRmodePojo> resultList = new ArrayList<>();
+        try {
+            String url = waterlogging_api + "nwp/prePolygonForecast?productId=" + productId
+                    + "&productInitialTime=" + initialTime + "&type=" + type;
+            writeLogTxtStr("请求面雨量: " + url, logFile);
+            String json = PostHttp(url, null, null);
+            if (json == null) {
+                writeLogTxtStr("prePolygonForecast返回为空 type=" + typeName, logFile);
+                return resultList;
+            }
+            Map map = JSON.parseObject(json, Map.class);
+            if (!map.containsKey("code") || (int) map.get("code") != 200) {
+                writeLogTxtStr("prePolygonForecast返回失败 type=" + typeName + " json=" + json, logFile);
+                return resultList;
+            }
+            String dataStr = map.get("data").toString();
+            List<Map> regionList = JSON.parseArray(dataStr, Map.class);
+            if (regionList == null || regionList.isEmpty()) {
+                writeLogTxtStr("prePolygonForecast data为空 type=" + typeName, logFile);
+                return resultList;
+            }
+
+            // 解析每个区域的数据
+            for (Map region : regionList) {
+                String regionName = region.get("regionName") != null ? region.get("regionName").toString() : "";
+                // 水利分片中存在regionName为空的"中心片"
+                if ("".equals(regionName)) {
+                    regionName = "中心片";
+                }
+                String ybtm = initialTime.replace("T", " ");  // "2026-07-31 08:00:00"
+
+                Object rainValuesObj = region.get("rainValues");
+                if (rainValuesObj == null) continue;
+                List<Map> rainValues = JSON.parseArray(rainValuesObj.toString(), Map.class);
+                if (rainValues == null) continue;
+
+                // 按小时聚合：10分钟数据累加为小时雨量，以整点结束时间为TM
+                // 48h: validTime已是整点(09:00)，天然1条/小时
+                // 6h:  validTime是10分钟间隔(08:10~09:00)，6条累加→TM=09:00
+                // key: "2026-07-31 09:00:00" (小时整点结束时间), value: 累加的gridValue
+                Map<String, Double> hourMap = new LinkedHashMap<>();
+                SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                for (Map rv : rainValues) {
+                    String validTime = rv.get("validTime") != null ? rv.get("validTime").toString() : "";
+                    Object gridValueObj = rv.get("gridValue");
+                    Double gridValue = gridValueObj != null ? Double.parseDouble(gridValueObj.toString()) : 0.0;
+
+                    // 计算该条数据归属于哪个整点结束时间
+                    // 整点(e.g. 09:00:00) → 不动；非整点(e.g. 08:10:00) → 进到下一整点(09:00:00)
+                    String tmKey;
+                    try {
+                        Date vtDate = isoFormat.parse(validTime);
+                        if (vtDate.getMinutes() == 0 && vtDate.getSeconds() == 0) {
+                            tmKey = validTime;  // 已是整点
+                        } else {
+                            // 进到下一整点
+                            tmKey = isoFormat.format(new Date(vtDate.getTime() + 3600000L - vtDate.getMinutes() * 60000L - vtDate.getSeconds() * 1000L));
+                        }
+                    } catch (ParseException e) {
+                        // 兜底：截取到小时
+                        tmKey = validTime.length() >= 13 ? validTime.substring(0, 13) : validTime;
+                    }
+                    hourMap.merge(tmKey, gridValue, Double::sum);
+                }
+
+                // 为每个小时创建一条记录
+                for (Map.Entry<String, Double> entry : hourMap.entrySet()) {
+                    String tm = entry.getKey().replace("T", " ");  // "2026-07-31 09:00:00"
+                    Double drp = entry.getValue();
+
+                    StRnflRmodePojo pojo = new StRnflRmodePojo();
+                    pojo.setSTCD(regionName);                       // STCD ← regionName
+                    pojo.setYBTM(ybtm);                             // YBTM
+                    pojo.setTM(tm);                                 // TM (预报时间，整点结束时间)
+                    pojo.setDRP(drp);                               // DRP (小时累计降雨量)
+                    pojo.setTYPE(typeName);                         // TYPE
+                    pojo.setFPDR((double) fpdr);                    // FPDR (6或48)
+                    // 非雨量字段留null
+                    resultList.add(pojo);
+                }
+            }
+            writeLogTxtStr("type=" + typeName + " 解析到 " + resultList.size() + " 条记录", logFile);
+        } catch (Exception e) {
+            writeLogTxtStr("获取面雨量异常 type=" + typeName + ": " + e.getMessage(), logFile);
+            e.printStackTrace();
+        }
+        return resultList;
+    }
+
+    /**
+     * 无间隙更新RMODE数据
+     * 先查询已有数据，分拆为insertList和updateList，先更新后插入
+     */
+    private void upsertRmodeData(List<StRnflRmodePojo> newData, String ybtm, String type, int fpdr, String logFile) {
+        // 查询已有的RMODE数据（按YBTM + FPDR + TYPE过滤，区分6h/48h）
+        List<StRnflRmodePojo> existingData = stRnflRmodeData.selectByYbtmAndFpdr(ybtm, (double) fpdr, type);
+
+        // 构建已存在数据的key集合
+        Set<String> existingKeys = new HashSet<>();
+        Map<String, Double> existingDrpMap = new HashMap<>();
+        if (existingData != null) {
+            for (StRnflRmodePojo pojo : existingData) {
+                String key = pojo.getSTCD() + "_" + pojo.getTM();
+                existingKeys.add(key);
+                existingDrpMap.put(key, pojo.getDRP());
+            }
+        }
+
+        List<StRnflRmodePojo> insertList = new ArrayList<>();
+        List<StRnflRmodePojo> updateList = new ArrayList<>();
+
+        for (StRnflRmodePojo pojo : newData) {
+            String key = pojo.getSTCD() + "_" + pojo.getTM();
+            if (existingKeys.contains(key)) {
+                // 已有记录，比较DRP是否有变化
+                Double oldDrp = existingDrpMap.get(key);
+                if (oldDrp != null && Math.abs(oldDrp - (pojo.getDRP() != null ? pojo.getDRP() : 0.0)) > 0.001) {
+                    updateList.add(pojo);
+                }
+            } else {
+                // 新记录
+                insertList.add(pojo);
+            }
+        }
+
+        writeLogTxtStr("type=" + type + " updateList=" + updateList.size() + " insertList=" + insertList.size(), logFile);
+
+        // 先更新（批量模式）
+        if (updateList.size() > 0) {
+            org.apache.ibatis.session.SqlSession batchSession = swzzmodeSqlSessionFactory
+                    .openSession(org.apache.ibatis.session.ExecutorType.BATCH);
+            try {
+                StRnflRmodeData batchMapper = batchSession.getMapper(StRnflRmodeData.class);
+                for (StRnflRmodePojo pojo : updateList) {
+                    batchMapper.updateDrp(pojo);
+                }
+                batchSession.flushStatements();
+                batchSession.commit();
+            } finally {
+                batchSession.close();
+            }
+            writeLogTxtStr("type=" + type + " 更新完成 " + updateList.size() + " 条", logFile);
+        }
+
+        // 再插入
+        if (insertList.size() > 0) {
+            batchInsertRmode(insertList, logFile);
+        }
+    }
+
+    /**
+     * 批量插入RMODE数据
+     */
+    private void batchInsertRmode(List<StRnflRmodePojo> dataList, String logFile) {
+        int total = dataList.size();
+        int batchSize = 4000;
+        int num = total / batchSize;
+        if (total % batchSize != 0) {
+            num += 1;
+        }
+        for (int i = 0; i < num; i++) {
+            int fromIndex = i * batchSize;
+            int toIndex = Math.min((i + 1) * batchSize, total);
+            List<StRnflRmodePojo> subList = dataList.subList(fromIndex, toIndex);
+            stRnflRmodeData.insertALL(subList);
+        }
+        writeLogTxtStr("批量插入RMODE完成，共 " + total + " 条", logFile);
+    }
+
+    /**
+     * 插入RLIST记录
+     */
+    private void insertNwpRlist(String ybtm, int fpdr, int productId, String logFile) {
+        StRnflRlistPojo pojo = new StRnflRlistPojo();
+        pojo.setID(UUID.randomUUID().toString().replaceAll("-", ""));
+        pojo.setNCFILE("nwp/prePolygonForecast?productId=" + productId);
+        pojo.setTM(ybtm);
+        pojo.setFPDR((double) fpdr);
+        stRnflRlistData.insertOne(pojo);
+        writeLogTxtStr("插入RLIST记录: ID=" + pojo.getID() + " TM=" + ybtm + " FPDR=" + fpdr, logFile);
+    }
+
+    // ==================== NWP面雨量预报同步 END ====================
 
     public static void main(String[] args) {
         String url = "http://www.shzxt.cn/shpma/ShpMaServ/GetyfwPicListV1?SToken=697D2E3D911028CB969AA7723DB569CA&t=1729476341205";

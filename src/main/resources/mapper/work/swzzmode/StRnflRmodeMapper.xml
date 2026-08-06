@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="timertaskserver.workserver.data.swzzmode.StRnflRmodeData">
+
+    <select id="selectByYbtmAndFpdr" resultType="timertaskserver.workserver.pojo.swzzmode.StRnflRmodePojo">
+        SELECT STCD, YBTM, TM, DRP, INTV, TEMP, HUMIDITY, WINDDIR, WINDSPEED, WEATHERCODE, AIRPRESSURE, TYPE, FPDR
+        FROM ST_RNFL_RMODE
+        <where>
+            <if test="ybtm != null and ybtm != ''">
+                AND YBTM = #{ybtm}
+            </if>
+            <if test="fpdr != null">
+                AND FPDR = #{fpdr}
+            </if>
+            <if test="type != null and type != ''">
+                AND TYPE = #{type}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertALL" parameterType="timertaskserver.workserver.pojo.swzzmode.StRnflRmodePojo">
+        INSERT INTO ST_RNFL_RMODE(STCD, YBTM, TM, DRP, INTV, TEMP, HUMIDITY, WINDDIR, WINDSPEED, WEATHERCODE, AIRPRESSURE, TYPE, FPDR)
+        VALUES
+        <foreach collection="objList" item="obj" separator=",">
+            (#{obj.STCD}, #{obj.YBTM}, #{obj.TM}, #{obj.DRP}, #{obj.INTV}, #{obj.TEMP}, #{obj.HUMIDITY},
+             #{obj.WINDDIR}, #{obj.WINDSPEED}, #{obj.WEATHERCODE}, #{obj.AIRPRESSURE}, #{obj.TYPE}, #{obj.FPDR})
+        </foreach>
+    </insert>
+
+    <update id="updateDrp" parameterType="timertaskserver.workserver.pojo.swzzmode.StRnflRmodePojo">
+        UPDATE ST_RNFL_RMODE
+        SET DRP = #{DRP}
+        WHERE STCD = #{STCD} AND YBTM = #{YBTM} AND TM = #{TM} AND FPDR = #{FPDR}
+    </update>
+
+    <delete id="deleteByYbtmAndFpdr">
+        DELETE FROM ST_RNFL_RMODE WHERE YBTM = #{ybtm} AND FPDR = #{fpdr} AND TYPE = #{type}
+    </delete>
+
+</mapper>
