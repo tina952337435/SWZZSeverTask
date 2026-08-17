@@ -202,6 +202,9 @@ public class MyTimerTask {
     @Value("${http.urlPath.waterlogging_api}")
     public String waterlogging_api;
 
+    /** 全局共享 OkHttpClient（线程安全），避免每次请求 new 一个导致线程/连接池泄漏 */
+    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient();
+
     public static String getHtmlResourceByUrl(String url, String encoding) {
         StringBuffer buffer = new StringBuffer();
         URL urlObj = null;
@@ -804,7 +807,7 @@ public class MyTimerTask {
     public static String ZGHYYBWaterPostHttp(String paramValue) throws IOException {
         MyTimerTask myTimerTask = ApplicationContextUtil.getApplicationContext().getBean(MyTimerTask.class);
         String url = myTimerTask.oceanguideUrl + "hyyj2/forecast/nearAgingReport";// "https://www.oceanguide.org.cn/hyyj2/forecast/nearAgingReport";
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = HTTP_CLIENT;
         FormBody body = new FormBody.Builder()
                 .add("areaName", paramValue)
                 .build();
@@ -818,7 +821,7 @@ public class MyTimerTask {
     }
 
     public static String wbcHttp(String url, List<String> param, List<String> paramValue) throws IOException {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = HTTP_CLIENT;
         StringBuilder sbu = new StringBuilder();
         // FormBody.Builder builder = new FormBody.Builder();
         if (null != param) {
@@ -843,7 +846,7 @@ public class MyTimerTask {
     }
 
     public static String PostHttp(String url, List<String> param, List<String> paramValue) throws IOException {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = HTTP_CLIENT;
         // StringBuilder sbu = new StringBuilder();
         FormBody.Builder builder = new FormBody.Builder();
         if (null != param) {
@@ -1209,6 +1212,7 @@ public class MyTimerTask {
 
                     writeLogTxtStr("方法FQWater(开始执行转换nc文件命令)" + nc, "FQWater" + formattedDateLog + ".txt");
                     Process exec = runtime.exec(wgrib2Path + " " + grb + " -netcdf " + nc);
+                    drainProcessStreams(exec);
                     int exitCode = exec.waitFor();
                     builder.append("wgrib2 ").append(grb).append(" -netcdf ").append(nc).append("\n");
                     if (exitCode != 0) {
@@ -1330,6 +1334,7 @@ public class MyTimerTask {
                         break;
                 }
             }
+            openFile.close();
             int latSize = latList.size();
             int lonSize = lonList.size();
             System.out.println(
@@ -1398,6 +1403,7 @@ public class MyTimerTask {
                     String grb = filePath + "/" + fileName;
                     String nc = filePathNC + "/" + fileName.substring(0, fileName.indexOf(".")) + ".nc";
                     Process exec = runtime.exec(wgrib2Path + " " + grb + " -netcdf " + nc);
+                    drainProcessStreams(exec);
                     int exitCode = exec.waitFor();
                     builder.append("wgrib2 ").append(grb).append(" -netcdf ").append(nc).append("\n");
                     if (exitCode != 0) {
@@ -1511,6 +1517,7 @@ public class MyTimerTask {
                         break;
                 }
             }
+            openFile.close();
             int latSize = latList.size();
             int lonSize = lonList.size();
             System.out.println(
@@ -1596,6 +1603,24 @@ public class MyTimerTask {
                 da[i] = data.getDouble(i);
             }
             return da;
+        }
+    }
+
+    /**
+     * 排空子进程 stdout/stderr，防止输出缓冲写满导致 waitFor() 永久阻塞。
+     */
+    private static void drainProcessStreams(Process process) {
+        new Thread(() -> drain(process.getInputStream())).start();
+        new Thread(() -> drain(process.getErrorStream())).start();
+    }
+
+    private static void drain(InputStream in) {
+        try (InputStream is = in) {
+            byte[] buf = new byte[8192];
+            while (is.read(buf) != -1) {
+                // 丢弃子进程输出，仅用于排空管道，防止阻塞
+            }
+        } catch (IOException ignored) {
         }
     }
 
@@ -3248,9 +3273,10 @@ public class MyTimerTask {
                         lsList.add(lsObj);
                     }
                     if (map1.containsKey("forecast")) {
-                        String forecast = map1.get("forecast").toString();
-                        if ("".equals(forecast) || null == forecast)
+                        Object forecastObj = map1.get("forecast");
+                        if (forecastObj == null || "".equals(forecastObj.toString()))
                             continue;
+                        String forecast = forecastObj.toString();
                         List<Map> maps = JSON.parseArray(forecast, Map.class);
                         for (Map m : maps) {// List list ThreadPoolTaskScheduled
                             String tm = "";//
@@ -3258,12 +3284,14 @@ public class MyTimerTask {
                                 tm = m.get("tm").toString();
                             }
                             if (m.containsKey("forecastpoints")) {
-                                String forecastpoints = m.get("forecastpoints").toString();
-                                if ("".equals(forecastpoints) || null == forecastpoints)
+                                Object fpsObj = m.get("forecastpoints");
+                                if (fpsObj == null || "".equals(fpsObj.toString()))
                                     continue;
+                                String forecastpoints = fpsObj.toString();
                                 List<Map> list = JSON.parseArray(forecastpoints, Map.class);
 
                                 for (Map mObj : list) {
+                                    try {
                                     String time = mObj.get("time") != null ? mObj.get("time").toString() : "";
                                     String lng = mObj.get("lng") != null ? mObj.get("lng").toString() : "0";
                                     String lat = mObj.get("lat") != null ? mObj.get("lat").toString() : "0";
@@ -3275,32 +3303,44 @@ public class MyTimerTask {
                                                     ? mObj.get("pressure").toString()
                                                     : "0";
                                     String ybsj = mObj.get("ybsj") != null ? mObj.get("ybsj").toString() : "";
-                                    if (!"".equals(ybsj)) {
+                                    if ("".equals(ybsj)) {
+                                        continue;
+                                    }
+                                    try {
                                         LocalDateTime parse = LocalDateTime.parse(ybsj,
                                                 DateTimeFormatter.ISO_OFFSET_DATE_TIME);
                                         DateTimeFormatter dateTimeFormatter = DateTimeFormatter
                                                 .ofPattern("yyyy-MM-dd HH:mm:ss");
                                         ybsj = dateTimeFormatter.format(parse);
-                                        Integer count1 = zj_tfybljData.selectCount(tfId, time, ybsj, tm);
-                                        if (count1 > 0)
-                                            continue;
-                                        ZJ_TFYBLJPojo ybObj = new ZJ_TFYBLJPojo();
-                                        if (ybNum == 0) {
-                                            maxIdT = zj_tfybljData.selectMaxId();
-                                        }
-                                        if (maxIdT == null)
-                                            maxIdT = 0;
-                                        ybNum += 1;
-                                        ybObj.setZJ_ID(maxIdT + ybNum);
-                                        ybObj.setZJ_TFBH(tfId);
-                                        ybObj.setZJ_TM(tm);
-                                        ybObj.setZJ_RQSJ(time);
-                                        ybObj.setZJ_JD(Float.valueOf(lng));
-                                        ybObj.setZJ_WD(Float.valueOf(lat));
-                                        ybObj.setZJ_ZXFS(Integer.valueOf(speed));
-                                        ybObj.setZJ_ZXQY(Integer.valueOf(pressure));
-                                        ybObj.setZJ_YBSJ(ybsj);
-                                        ybList.add(ybObj);
+                                    } catch (Exception e) {
+                                        writeLogTxtStr("台风 " + tfId + " 预报点 ybsj 解析失败, time="
+                                                + time + ", ybsj=" + ybsj + ", 跳过该点", logFileName);
+                                        continue;
+                                    }
+                                    Integer count1 = zj_tfybljData.selectCount(tfId, time, ybsj, tm);
+                                    if (count1 > 0)
+                                        continue;
+                                    ZJ_TFYBLJPojo ybObj = new ZJ_TFYBLJPojo();
+                                    if (ybNum == 0) {
+                                        maxIdT = zj_tfybljData.selectMaxId();
+                                    }
+                                    if (maxIdT == null)
+                                        maxIdT = 0;
+                                    ybNum += 1;
+                                    ybObj.setZJ_ID(maxIdT + ybNum);
+                                    ybObj.setZJ_TFBH(tfId);
+                                    ybObj.setZJ_TM(tm);
+                                    ybObj.setZJ_RQSJ(time);
+                                    ybObj.setZJ_JD(Float.valueOf(lng));
+                                    ybObj.setZJ_WD(Float.valueOf(lat));
+                                    ybObj.setZJ_ZXFS(Integer.valueOf(speed));
+                                    ybObj.setZJ_ZXQY(Integer.valueOf(pressure));
+                                    ybObj.setZJ_YBSJ(ybsj);
+                                    ybList.add(ybObj);
+                                    } catch (Exception e) {
+                                        writeLogTxtStr("台风 " + tfId + " 预报点解析失败, time="
+                                                + (mObj.get("time") != null ? mObj.get("time").toString() : "")
+                                                + ", 跳过该点: " + e.getMessage(), logFileName);
                                     }
                                 }
                             }
@@ -3315,26 +3355,47 @@ public class MyTimerTask {
             int ybSize = ybList.size() / count;
             if (ybList.size() % count != 0)
                 ybSize += 1;
+            writeLogTxtStr("台风 " + tfId + " 本轮待入库: 历史路径 " + lsList.size()
+                    + " 条, 预报路径 " + ybList.size() + " 条", logFileName);
             List<ZJ_TFLSLJPojo> lsListT = new ArrayList<>();
             List<ZJ_TFYBLJPojo> ybListT = new ArrayList<>();
-            for (int i = 0; i < lsSize; i++) {
-                if (i == lsSize - 1) {
-                    lsListT = lsList.subList(i * count, lsList.size());
-                } else {
-                    lsListT = lsList.subList(i * count, (i + 1) * count);
+
+            // 插入历史路径
+            try {
+                for (int i = 0; i < lsSize; i++) {
+                    if (i == lsSize - 1) {
+                        lsListT = lsList.subList(i * count, lsList.size());
+                    } else {
+                        lsListT = lsList.subList(i * count, (i + 1) * count);
+                    }
+                    zj_tflsljData.insertALL(lsListT);
                 }
-                zj_tflsljData.insertALL(lsListT);
-            }
-            for (int i = 0; i < ybSize; i++) {
-                if (i == ybSize - 1) {
-                    ybListT = ybList.subList(i * count, ybList.size());
-                } else {
-                    ybListT = ybList.subList(i * count, (i + 1) * count);
+                if (lsList.size() > 0) {
+                    writeLogTxtStr("台风 " + tfId + " 历史路径入库完成, " + lsList.size() + " 条", logFileName);
                 }
-                zj_tfybljData.insertALL(ybListT);
+            } catch (Exception e) {
+                writeLogTxtStr("台风 " + tfId + " 历史路径入库失败: " + e.getMessage(), logFileName);
+                e.printStackTrace();
             }
-            writeLogTxtStr("台风 " + tfId + " 路径点同步完成, 新增历史路径: " + lsList.size()
-                    + " 条, 新增预报路径: " + ybList.size() + " 条", logFileName);
+
+            // 插入预报路径
+            try {
+                for (int i = 0; i < ybSize; i++) {
+                    if (i == ybSize - 1) {
+                        ybListT = ybList.subList(i * count, ybList.size());
+                    } else {
+                        ybListT = ybList.subList(i * count, (i + 1) * count);
+                    }
+                    zj_tfybljData.insertALL(ybListT);
+                }
+                if (ybList.size() > 0) {
+                    writeLogTxtStr("台风 " + tfId + " 预报路径入库完成, " + ybList.size() + " 条", logFileName);
+                }
+            } catch (Exception e) {
+                writeLogTxtStr("台风 " + tfId + " 预报路径入库失败: " + e.getMessage()
+                        + ", 共 " + ybList.size() + " 条未入库", logFileName);
+                e.printStackTrace();
+            }
 
         } catch (Exception e) {
             writeLogTxtStr("台风 " + tfId + " 路径点同步异常: " + e.getMessage(), logFileName);
