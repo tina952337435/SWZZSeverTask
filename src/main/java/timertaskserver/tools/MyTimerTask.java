@@ -3773,6 +3773,28 @@ public class MyTimerTask {
         }
     }
 
+    // 同步日数据（element：TIDE潮位 / PPTN降雨；pathname 可为空）
+    public void syncDayData(String element, String pathname) {
+        DateTimeFormatter formatterYMDHM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
+        LocalDateTime currentDateLog = LocalDateTime.now();
+        String formattedDateLog = currentDateLog.format(formatterYMDHM);
+        try {
+            String token = "768ADC6A9E72BFEE4891F1F98650FEEE";
+            String parmasMap = (pathname == null || pathname.isEmpty())
+                    ? "{\"element\":\"" + element + "\"}"
+                    : "{\"element\":\"" + element + "\",\"pathname\":\"" + pathname + "\"}";
+            HashMap<String, Object> header = new HashMap<>();
+            header.put("Content-Type", "application/json;charset=UTF-8");
+            header.put("Authorization", token);
+            String result = apihelper.apipost(ServerIP + "Tongji/syncDayData", parmasMap, header);
+            writeLogTxtStr("syncDayData[" + element + "]结束同步，result结果为*****" + result,
+                    "syncDayData" + formattedDateLog + ".txt");
+        } catch (Exception e) {
+            writeLogTxtStr("syncDayData[" + element + "]报错：" + e.getMessage(),
+                    "syncDayData" + formattedDateLog + ".txt");
+        }
+    }
+
     public void SynchronizeLLData() throws IOException {
         DateTimeFormatter formatterYMDHM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
         LocalDateTime currentDateLog = LocalDateTime.now();
