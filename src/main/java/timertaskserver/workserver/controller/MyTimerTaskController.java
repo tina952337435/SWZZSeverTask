@@ -137,36 +137,52 @@ public class MyTimerTaskController {
             for (Class className : classList){
                 Class<?> taskClass = Class.forName(className.getName());
                 Object task = taskClass.newInstance();
-                if(className.getName().equals("WenDaiWBCTask")||className.getName().equals("TaiFengWBCTask")||className.getName().equals("ZGHYYBWaterTask")){
+                intervalMinutes = httpintervalMinutes;// 每轮重置，避免上一轮任务的值泄漏
+                if(className.getSimpleName().equals("WenDaiWBCTask")||className.getSimpleName().equals("TaiFengWBCTask")||className.getSimpleName().equals("ZGHYYBWaterTask")){
                     defaultCron="0 */20 * * * ?";//20分钟请求一次
                     //intervalMinutes=20;
                 }
-                else   if(className.equals("SynchronizeDataTask") ){//水位
+                else   if(className.getSimpleName().equals("SynchronizeDataTask") ){//水位
                     defaultCron = "0 0/3* * * ?";//每 n 分钟 执行一次
                     intervalMinutes=3;
                 }
-                else if(className.equals("SynchronizeLLDataTask")){//流量
+                else if(className.getSimpleName().equals("SynchronizeLLDataTask")){//流量
                     defaultCron = "0 0/3 * * * ?";//每 n 分钟 执行一次
                     intervalMinutes=3;
                 }
-                else   if(className.equals("SynchronizeYLDataTask") ){//雨量
+                else   if(className.getSimpleName().equals("SynchronizeYLDataTask") ){//雨量
                     defaultCron = "0 0/3* * * ?";//每 n 分钟 执行一次
                     intervalMinutes=3;
                 }
-                else   if(className.equals("SynchronizeFXDataTask") ){//风向
+                else   if(className.getSimpleName().equals("SynchronizeFXDataTask") ){//风向
                     defaultCron = "0 0/3 * * * ?";//每 n 分钟 执行一次
                     intervalMinutes=3;
                 }
-                else if(className.equals("SynchronizeDataSWPT_SWTask")||className.equals("SynchronizeDataSWPT_LLTask")){
+                else if(className.getSimpleName().equals("SynchronizeDataSWPT_SWTask")||className.getSimpleName().equals("SynchronizeDataSWPT_LLTask")){
                     defaultCron = "0 0/3* * * ?";//每 n 分钟 执行一次
                     intervalMinutes=3;
                 }
-                else   if(className.equals("SynchronizeGateDataTask") ){//水闸
+                else   if(className.getSimpleName().equals("SynchronizeGateDataTask") ){//水闸
                     defaultCron = "0 0/3 * * * ?";//每 n 分钟 执行一次
                     intervalMinutes=3;
                 }
 //                boolean start = service.startTimerTask((Runnable) task, defaultCron);
-                boolean start = service.startTimerTask((Runnable) task,intervalMinutes);
+                boolean start;
+                String simpleName = className.getSimpleName();
+                // 新增：定时点任务用 cron 调度（不动上面原有逻辑）
+                if (simpleName.equals("SyncTideDayData0030Task")) {
+                    start = service.startTimerTask((Runnable) task, "0 30 0 * * ?");//每天00:30
+                } else if (simpleName.equals("SyncTideDayData0100Task")) {
+                    start = service.startTimerTask((Runnable) task, "0 0 1 * * ?");//每天01:00
+                } else if (simpleName.equals("SyncPptnDayData0820Task")) {
+                    start = service.startTimerTask((Runnable) task, "0 20 8 * * ?");//每天08:20
+                } else if (simpleName.equals("SyncPptnDayData0830Task")) {
+                    start = service.startTimerTask((Runnable) task, "0 30 8 * * ?");//每天08:30
+                } else if (simpleName.equals("RefreshCSXSLTask")) {
+                    start = service.startTimerTask((Runnable) task, "0 */10 * * * ?");//每10分钟
+                } else {
+                    start = service.startTimerTask((Runnable) task, intervalMinutes);
+                }
                 if (start){
                     num++;
                 }

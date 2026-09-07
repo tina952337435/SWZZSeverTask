@@ -3795,6 +3795,25 @@ public class MyTimerTask {
         }
     }
 
+    // 刷新模型槽蓄量数据
+    public void refreshCSXSL() {
+        DateTimeFormatter formatterYMDHM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
+        LocalDateTime currentDateLog = LocalDateTime.now();
+        String formattedDateLog = currentDateLog.format(formatterYMDHM);
+        try {
+            String token = "768ADC6A9E72BFEE4891F1F98650FEEE";
+            String parmasMap = "{}";
+            HashMap<String, Object> header = new HashMap<>();
+            header.put("Content-Type", "application/json;charset=UTF-8");
+            header.put("Authorization", token);
+            String result = apihelper.apipost(ServerIP + "SWZZ_CSXSL/refresh", parmasMap, header);
+            writeLogTxtStr("refreshCSXSL刷新模型槽蓄量数据，result结果为*****" + result,
+                    "refreshCSXSL" + formattedDateLog + ".txt");
+        } catch (Exception e) {
+            writeLogTxtStr("refreshCSXSL报错：" + e.getMessage(), "refreshCSXSL" + formattedDateLog + ".txt");
+        }
+    }
+
     public void SynchronizeLLData() throws IOException {
         DateTimeFormatter formatterYMDHM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH");
         LocalDateTime currentDateLog = LocalDateTime.now();

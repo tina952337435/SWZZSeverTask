@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class MyEnableScheduledService {
@@ -77,9 +78,16 @@ public class MyEnableScheduledService {
             // 2. 包装后再调度
             Runnable wrappedTask = new MutexTaskWrapper(runTask);
             long intervalMillis = intervalMinutes * 60 * 1000;
+            // 错峰启动：startALL 一次性注册所有任务，若都用固定 2 秒延迟，
+            // 每轮会在同一时刻“齐发”打向接口平台。这里把首个执行随机分散到
+            // 一个完整周期内，消除并发尖峰（保底 2 秒，给 cancel 旧任务留出时间）。
+            long initialDelayMillis = 2000;
+            if (intervalMillis > 0) {
+                initialDelayMillis += ThreadLocalRandom.current().nextLong(intervalMillis);
+            }
             ScheduledFuture<?> future = threadPoolTaskScheduler.scheduleAtFixedRate(
                     wrappedTask,
-                    Instant.now().plusMillis(2000),  // 延迟2秒启动，给 cancel 旧任务留出时间
+                    Instant.now().plusMillis(initialDelayMillis),
                     Duration.ofMillis(intervalMillis)
             );
 
